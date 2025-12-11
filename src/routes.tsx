@@ -1,7 +1,11 @@
 // src/routes.tsx
 import {createBrowserRouter, Navigate} from 'react-router-dom';
+
+// IMPORTATION DU NOUVEAU LAYOUT CORRIGÉ
+// Nous importons DashboardLayout (qui inclut la Sidebar et le Header)
+import DashboardLayout from "./components/layout/DashboardLayout.tsx"; 
+
 import Landing from './pages/Landing.tsx';
-import Dashboard from "./components/layout/Dashboard.tsx";
 import ProtectedRoute from "./components/auth/ProtectedRoute.tsx";
 import AuthLayout from "./components/layout/AuthLayout.tsx";
 
@@ -28,117 +32,91 @@ import { Chat } from "./pages/Chat.tsx";
 // Pages d'authentification
 import Login from "./pages/Login.tsx";
 import Register from "./pages/Register.tsx";
+import { Outlet } from 'react-router-dom';
 
 const routes = createBrowserRouter([
-	{
-		path: "/",
-		element: <Landing />,
-	},
-	{
-		path: "/authentication",
-		element: <AuthLayout />,
-		children: [
-			{
-				index: true, // URL: /authentication
-				element: <Login />,
-			},
-			{
-				path: "register", // URL: /authentication/register
-				element: <Register />
-			}
-		]
-	},
-	{
-		path: "/dashboard",
-		element: <ProtectedRoute/>,
-		children: [
-			{
-				element: <Dashboard/>,
-				children: [
-					{ index: true, element: <Overview/>, },
-					{
-						path: "books",
-						element: <DefaultLayout/>,
-						children: [
-							{ index: true, element: <Departements/>, },
-							{
-
-								path: ":departmentName",
-								element: <DefaultLayout/>,
-								children: [
-									{ index: true, element: <Catalogue/> },
-									{ path: ":bookId", element: <BookDetails/> },
-									{ path: "add", element: <AddBook/> }
-								]
-							}
-						]
-					},
-					{
-						path: "thesis",
-						element: <DefaultLayout/>,
-						children: [
-							{ index: true, element: <ThesisDepartment/> },
-							{
-								path: ":departmentName",
-								element: <DefaultLayout/>,
-								children: [
-									{ index: true, element: <ThesisCatalogue/> },
-									{ path: ":thesisId", element: <ThesisDetails/> },
-									{ path: "add", element: <AddThesis/> }
-								]
-							}
-						]
-					},
-					{
-						path: "messages",
-						element: <Chat/>, // Chat est maintenant la page principale
-						children: [
-							{ path: ":conversationId", element: <Chat/> }
-						]
-					},
-					{ path: "users", element: <Users/>, },
-					{ path: "loans", element: <Loans/>, },
-					{ path: "reservations", element: <Reservations/>, },
-					{ path: "settings", element: <OrgConfiguration/>, },
-					{ path: "archives", element: <Archives/>, },
-					{ path: "profile", element: <Profile/>, },
-					{ path: "*", element: <UnderDevelopment sectionName="Requested"/>, }
-				]
-			},
-			{
-				path: "users",
-				element: <Users />,
-			},
-			{
-				path: "loans",
-				element: <Loans />,
-			},
-			{
-				path: "reservations",
-				element: <Reservations />,
-			},
-			{
-				path: "settings",
-				element: <OrgConfiguration />,
-			},
-			{
-				path: "archives",
-				element: <Archives/>,
-			},
-			{
-				path: "profile",
-				element: <Profile/>,
-			},
-			{
-				path: "*",
-				element: <UnderDevelopment sectionName="Requested" />,
-			}
-		]
-	},
-	{
-		path: "*",
-		element: <Navigate to="/" replace />
-	},
+    {
+        path: "/",
+        element: <Landing />,
+    },
+    {
+        path: "/authentication",
+        element: <AuthLayout />,
+        children: [
+            {
+                index: true,
+                element: <Login />,
+            },
+            {
+                path: "register",
+                element: <Register />
+            }
+        ]
+    },
+    {
+        path: "/dashboard",
+        element: <ProtectedRoute/>,
+        children: [
+            {
+                // CORRECTION : On passe explicitement <Outlet /> comme children
+                element: <DashboardLayout><Outlet /></DashboardLayout>, 
+                children: [
+                    { index: true, element: <Overview/>, },
+                    {
+                        path: "books",
+                        element: <DefaultLayout/>,
+                        children: [
+                            { index: true, element: <Departements/>, },
+                            {
+                                path: ":departmentName",
+                                element: <DefaultLayout/>,
+                                children: [
+                                    { index: true, element: <Catalogue/> },
+                                    { path: ":bookId", element: <BookDetails/> },
+                                    { path: "add", element: <AddBook/> }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        path: "thesis",
+                        element: <DefaultLayout/>,
+                        children: [
+                            { index: true, element: <ThesisDepartment/> },
+                            {
+                                path: ":departmentName",
+                                element: <DefaultLayout/>,
+                                children: [
+                                    { index: true, element: <ThesisCatalogue/> },
+                                    { path: ":thesisId", element: <ThesisDetails/> },
+                                    { path: "add", element: <AddThesis/> }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        path: "messages",
+                        element: <Chat/>, 
+                        children: [
+                            { path: ":conversationId", element: <Chat/> }
+                        ]
+                    },
+                    // Routes simples qui héritent de DashboardLayout :
+                    { path: "users", element: <Users/>, },
+                    { path: "loans", element: <Loans/>, },
+                    { path: "reservations", element: <Reservations/>, },
+                    { path: "settings", element: <OrgConfiguration/>, },
+                    { path: "archives", element: <Archives/>, },
+                    { path: "profile", element: <Profile/>, },
+                    { path: "*", element: <UnderDevelopment sectionName="Requested"/>, }
+                ]
+            },
+        ]
+    },
+    {
+        path: "*",
+        element: <Navigate to="/" replace />
+    },
 ]);
 
 export default routes;

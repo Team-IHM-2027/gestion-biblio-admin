@@ -1,90 +1,49 @@
 // src/hooks/useStudents.ts
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { studentsService } from '../services/studentsService';
 import type { 
   Student, 
   StudentsFilters, 
   StudentsStats, 
-  PaginationData,
- 
+  PaginationData
 } from '../types/students';
-import { useSearchContext } from '../context/SearchContext';
 
-interface UseStudentsReturn {
-  // Data
-  students: Student[];
-  filteredStudents: Student[];
-  stats: StudentsStats | null;
-  
-  // UI State
-  loading: boolean;
-  error: string | null;
-  
-  // Filters & Search
-  filters: StudentsFilters;
-  setFilters: (filters: Partial<StudentsFilters>) => void;
-  
-  // Pagination
-  pagination: PaginationData;
-  currentPageStudents: Student[];
-  goToPage: (page: number) => void;
-  nextPage: () => void;
-  prevPage: () => void;
-  
-  // Selection
-  selectedStudents: string[];
-  selectStudent: (studentId: string) => void;
-  selectAll: () => void;
-  clearSelection: () => void;
-  isSelected: (studentId: string) => boolean;
-  
-  // Actions
-  updateStudentStatus: (studentId: string, newStatus: 'ras' | 'bloc') => Promise<void>;
-  bulkUpdateStatus: (studentIds: string[], newStatus: 'ras' | 'bloc') => Promise<void>;
-  deleteStudent: (studentId: string) => Promise<void>;
-  bulkDeleteStudents: (studentIds: string[]) => Promise<void>;
-  
-  // Utils
-  refreshData: () => void;
-  exportStudents: () => Promise<Student[]>;
-}
-
-export const useStudents = (): UseStudentsReturn => {
-  // Search context
-  const { searchWord } = useSearchContext();
-  
-  // State
+export const useStudents = () => {
+  // -------------------------------------------------------
+  // STATE PRINCIPAL
+  // -------------------------------------------------------
   const [students, setStudents] = useState<Student[]>([]);
   const [stats, setStats] = useState<StudentsStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
-  
-  // Filters
+
+  // -------------------------------------------------------
+  // FILTERS
+  // -------------------------------------------------------
   const [filters, setFiltersState] = useState<StudentsFilters>({
-    search: '',
-    status: 'all',
-    level: '',
-    department: '',
-    sortBy: 'recent'
+    search: "",
+    status: "all",
+    level: "",
+    department: "",
+    sortBy: "recent",
   });
-  
-  // Pagination
+
+  // -------------------------------------------------------
+  // PAGINATION
+  // -------------------------------------------------------
   const [pagination, setPagination] = useState<PaginationData>({
     currentPage: 1,
     totalPages: 1,
     totalItems: 0,
-    itemsPerPage: 8,
+    itemsPerPage: 10,
     hasNextPage: false,
-    hasPrevPage: false
+    hasPrevPage: false,
   });
 
-  // Update search from context
-  useEffect(() => {
-    setFiltersState(prev => ({ ...prev, search: searchWord }));
-  }, [searchWord]);
-
-  // Load students data
+  // -------------------------------------------------------
+  // CHARGEMENT DES ÉTUDIANTS
+  // -------------------------------------------------------
   const loadStudents = useCallback(() => {
     setLoading(true);
     setError(null);
@@ -94,8 +53,8 @@ export const useStudents = (): UseStudentsReturn => {
         setStudents(studentsData);
         setLoading(false);
       },
-      (error) => {
-        setError(error.message);
+      (err) => {
+        setError(err.message);
         setLoading(false);
       }
     );
@@ -103,204 +62,237 @@ export const useStudents = (): UseStudentsReturn => {
     return unsubscribe;
   }, []);
 
-  // Load stats
+  // -------------------------------------------------------
+  // CHARGEMENT DES STATISTIQUES
+  // -------------------------------------------------------
   const loadStats = useCallback(async () => {
     try {
       const statsData = await studentsService.getStudentsStats();
       setStats(statsData);
-    } catch (error) {
-      console.error('Erreur lors du chargement des statistiques:', error);
+    } catch (err) {
+      console.error("Erreur lors du chargement des statistiques:", err);
     }
   }, []);
 
-  // Filter students
-  const filteredStudents = useCallback(() => {
-    return studentsService.filterAndSortStudents(students, filters);
+  // -------------------------------------------------------
+  // FILTRAGE ET TRI
+  // -------------------------------------------------------
+  const filteredList = useMemo(() => {
+    const searchTerm = filters.search.toLowerCase().trim();
+
+    let filtered = students.filter((student) => {
+      const matchSearch =
+        !searchTerm ||
+        student.name?.toLowerCase().includes(searchTerm) ||
+        student.email?.toLowerCase().includes(searchTerm);
+
+      const matchStatus =
+        filters.status === "all" || student.status === filters.status;
+
+      const matchLevel =
+        !filters.level || student.level === filters.level;
+
+      const matchDepartment =
+        !filters.department || student.department === filters.department;
+
+      return matchSearch && matchStatus && matchLevel && matchDepartment;
+    });
+
+    switch (filters.sortBy) {
+      case "recent":
+        filtered.sort((a, b) => 
+          new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+        );
+        break;
+      case "oldest":
+        filtered.sort((a, b) => 
+          new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime()
+        );
+        break;
+      case "name":
+        filtered.sort((a, b) => 
+          (a.name || "").localeCompare(b.name || "")
+        );
+        break;
+      case "name-desc":
+        filtered.sort((a, b) => 
+          (b.name || "").localeCompare(a.name || "")
+        );
+        break;
+    }
+
+    return filtered;
   }, [students, filters]);
 
-  const filtered = filteredStudents();
-
-  // Update pagination
+  // -------------------------------------------------------
+  // MISE À JOUR PAGINATION
+  // -------------------------------------------------------
   useEffect(() => {
-    const totalItems = filtered.length;
-    const totalPages = Math.ceil(totalItems / pagination.itemsPerPage);
-    
-    setPagination(prev => ({
+    const totalItems = filteredList.length;
+    const totalPages = Math.ceil(totalItems / pagination.itemsPerPage) || 1;
+    const currentPage = Math.min(pagination.currentPage, totalPages);
+
+    setPagination((prev) => ({
       ...prev,
+      currentPage,
       totalItems,
       totalPages,
-      hasNextPage: prev.currentPage < totalPages,
-      hasPrevPage: prev.currentPage > 1
+      hasNextPage: currentPage < totalPages,
+      hasPrevPage: currentPage > 1,
     }));
-  }, [filtered.length, pagination.itemsPerPage, pagination.currentPage]);
+  }, [filteredList.length, pagination.itemsPerPage]);
 
-  // Get current page students
+  // -------------------------------------------------------
+  // ÉTUDIANTS DE LA PAGE ACTUELLE
+  // -------------------------------------------------------
   const currentPageStudents = useCallback(() => {
-    const startIndex = (pagination.currentPage - 1) * pagination.itemsPerPage;
-    const endIndex = startIndex + pagination.itemsPerPage;
-    return filtered.slice(startIndex, endIndex);
-  }, [filtered, pagination.currentPage, pagination.itemsPerPage]);
+    const start = (pagination.currentPage - 1) * pagination.itemsPerPage;
+    const end = start + pagination.itemsPerPage;
+    return filteredList.slice(start, end);
+  }, [filteredList, pagination.currentPage, pagination.itemsPerPage]);
 
-  // Filter setters
-  const setFilters = useCallback((newFilters: Partial<StudentsFilters>) => {
-    setFiltersState(prev => ({ ...prev, ...newFilters }));
-    setPagination(prev => ({ ...prev, currentPage: 1 })); // Reset to first page
-  }, []);
+  // -------------------------------------------------------
+  // MODIFICATION DES FILTRES
+  // -------------------------------------------------------
+  const setFilters = useCallback(
+    (newFilters: Partial<StudentsFilters>) => {
+      setFiltersState((prev) => ({ ...prev, ...newFilters }));
+      setPagination((prev) => ({ ...prev, currentPage: 1 }));
+    },
+    []
+  );
 
-  // Pagination actions
+  // -------------------------------------------------------
+  // PAGINATION ACTIONS
+  // -------------------------------------------------------
   const goToPage = useCallback((page: number) => {
-    setPagination(prev => ({ ...prev, currentPage: page }));
+    setPagination((prev) => ({
+      ...prev,
+      currentPage: Math.max(1, Math.min(page, prev.totalPages))
+    }));
   }, []);
 
   const nextPage = useCallback(() => {
-    if (pagination.hasNextPage) {
-      setPagination(prev => ({ ...prev, currentPage: prev.currentPage + 1 }));
-    }
-  }, [pagination.hasNextPage]);
+    setPagination((prev) => ({
+      ...prev,
+      currentPage: prev.hasNextPage ? prev.currentPage + 1 : prev.currentPage
+    }));
+  }, []);
 
   const prevPage = useCallback(() => {
-    if (pagination.hasPrevPage) {
-      setPagination(prev => ({ ...prev, currentPage: prev.currentPage - 1 }));
-    }
-  }, [pagination.hasPrevPage]);
+    setPagination((prev) => ({
+      ...prev,
+      currentPage: prev.hasPrevPage ? prev.currentPage - 1 : prev.currentPage
+    }));
+  }, []);
 
-  // Selection actions
+  // -------------------------------------------------------
+  // SÉLECTION DES ÉTUDIANTS
+  // -------------------------------------------------------
   const selectStudent = useCallback((studentId: string) => {
-    setSelectedStudents(prev => 
-      prev.includes(studentId) 
-        ? prev.filter(id => id !== studentId)
+    setSelectedStudents((prev) =>
+      prev.includes(studentId)
+        ? prev.filter((id) => id !== studentId)
         : [...prev, studentId]
     );
   }, []);
 
   const selectAll = useCallback(() => {
-    const currentPageIds = currentPageStudents().map(s => s.id);
-    setSelectedStudents(prev => {
-      const allSelected = currentPageIds.every(id => prev.includes(id));
-      if (allSelected) {
-        return prev.filter(id => !currentPageIds.includes(id));
-      } else {
-        return [...new Set([...prev, ...currentPageIds])];
-      }
+    const ids = currentPageStudents().map((s) => s.id);
+    setSelectedStudents((prev) => {
+      const allSelected = ids.every((id) => prev.includes(id));
+      return allSelected
+        ? prev.filter((id) => !ids.includes(id))
+        : [...new Set([...prev, ...ids])];
     });
   }, [currentPageStudents]);
 
-  const clearSelection = useCallback(() => {
-    setSelectedStudents([]);
-  }, []);
+  const clearSelection = useCallback(() => setSelectedStudents([]), []);
+  const isSelected = useCallback((studentId: string) => selectedStudents.includes(studentId), [selectedStudents]);
 
-  const isSelected = useCallback((studentId: string) => {
-    return selectedStudents.includes(studentId);
-  }, [selectedStudents]);
-
-  // Student actions
-  const updateStudentStatus = useCallback(async (studentId: string, newStatus: 'ras' | 'bloc') => {
-    try {
+  // -------------------------------------------------------
+  // ACTIONS SUR LES ÉTUDIANTS
+  // -------------------------------------------------------
+  const updateStudentStatus = useCallback(
+    async (studentId: string, newStatus: "ras" | "bloc") => {
       await studentsService.updateStudentStatus(studentId, newStatus);
-      await loadStats(); // Refresh stats
-    } catch (error) {
-      console.error('Erreur lors de la mise à jour du statut:', error);
-      throw error;
-    }
-  }, [loadStats]);
+      await loadStats();
+    },
+    [loadStats]
+  );
 
-  const bulkUpdateStatus = useCallback(async (studentIds: string[], newStatus: 'ras' | 'bloc') => {
-    try {
+  const bulkUpdateStatus = useCallback(
+    async (studentIds: string[], newStatus: "ras" | "bloc") => {
       await studentsService.bulkAction({
         studentIds,
-        action: newStatus === 'bloc' ? 'block' : 'unblock'
+        action: newStatus === "bloc" ? "block" : "unblock",
       });
       clearSelection();
       await loadStats();
-    } catch (error) {
-      console.error('Erreur lors de la mise à jour en lot:', error);
-      throw error;
-    }
-  }, [clearSelection, loadStats]);
+    },
+    [clearSelection, loadStats]
+  );
 
-  const deleteStudent = useCallback(async (studentId: string) => {
-    try {
+  const deleteStudent = useCallback(
+    async (studentId: string) => {
       await studentsService.deleteStudent(studentId);
       await loadStats();
-    } catch (error) {
-      console.error('Erreur lors de la suppression:', error);
-      throw error;
-    }
-  }, [loadStats]);
+    },
+    [loadStats]
+  );
 
-  const bulkDeleteStudents = useCallback(async (studentIds: string[]) => {
-    try {
+  const bulkDeleteStudents = useCallback(
+    async (studentIds: string[]) => {
       await studentsService.bulkAction({
         studentIds,
-        action: 'delete'
+        action: "delete",
       });
       clearSelection();
       await loadStats();
-    } catch (error) {
-      console.error('Erreur lors de la suppression en lot:', error);
-      throw error;
-    }
-  }, [clearSelection, loadStats]);
+    },
+    [clearSelection, loadStats]
+  );
 
-  // Export
   const exportStudents = useCallback(async () => {
-    try {
-      return await studentsService.exportStudents(filters);
-    } catch (error) {
-      console.error('Erreur lors de l\'exportation:', error);
-      throw error;
-    }
+    return studentsService.exportStudents(filters);
   }, [filters]);
 
-  // Refresh data
   const refreshData = useCallback(() => {
     loadStats();
   }, [loadStats]);
 
-  // Load data on mount
+  // -------------------------------------------------------
+  // INITIALISATION
+  // -------------------------------------------------------
   useEffect(() => {
     const unsubscribe = loadStudents();
     loadStats();
-    
     return unsubscribe;
   }, [loadStudents, loadStats]);
 
   return {
-    // Data
     students,
-    filteredStudents: filtered,
+    filteredList,
     stats,
-    
-    // UI State
     loading,
     error,
-    
-    // Filters & Search
     filters,
     setFilters,
-    
-    // Pagination
     pagination,
-    currentPageStudents: currentPageStudents(),
+    currentPageStudents,
     goToPage,
     nextPage,
     prevPage,
-    
-    // Selection
     selectedStudents,
     selectStudent,
     selectAll,
     clearSelection,
     isSelected,
-    
-    // Actions
     updateStudentStatus,
     bulkUpdateStatus,
     deleteStudent,
     bulkDeleteStudents,
-    
-    // Utils
     refreshData,
-    exportStudents
+    exportStudents,
   };
 };

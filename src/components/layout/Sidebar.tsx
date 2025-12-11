@@ -2,11 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useConfig } from "../theme/ConfigProvider.tsx";
 import { BiLogOut } from "react-icons/bi";
-import { FiChevronDown, FiChevronRight } from "react-icons/fi";
+import { FiChevronDown, FiChevronRight, FiX } from "react-icons/fi";
 import useI18n from '../../hooks/useI18n';
 import { useAuth } from '../../context/AuthContext.tsx';
 
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+	isMobileOpen: boolean;
+	setIsMobileOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, setIsMobileOpen }) => {
 	const { config } = useConfig();
 	const navigate = useNavigate();
 	const { t } = useI18n();
@@ -21,7 +26,6 @@ const Sidebar: React.FC = () => {
 		{ id: 'reservations', label: t('components:sidebar.reservations'), icon: 'clipboard-check' },
 		{ id: 'archives', label: t('components:sidebar.archives'), icon: 'archive' },
 		{ id: 'settings', label: t('components:sidebar.settings'), icon: 'cog' },
-		
 	];
 
 	const bookManagementItems = [
@@ -39,28 +43,31 @@ const Sidebar: React.FC = () => {
 		if (isBookManagementActive && !isBookManagementOpen) {
 			setIsBookManagementOpen(true);
 		}
-	}, [location.pathname, isBookManagementActive]);
+	}, [location.pathname, isBookManagementActive, isBookManagementOpen]);
 
+	// Fermer la sidebar mobile lors du changement de route
+	useEffect(() => {
+		setIsMobileOpen(false);
+	}, [location.pathname, setIsMobileOpen]);
 
 	const toggleBookManagement = () => {
 		setIsBookManagementOpen(!isBookManagementOpen);
 	};
 
 	const renderLogo = () => {
-		if (!config?.Logo) return null; // wait until config is loaded
+		if (!config?.Logo) return null;
 		return (
 			<img
-			src={config.Logo}
-			alt={`${config.Name} Logo`}
-			className="w-10 h-10 object-contain"
-			onError={(e) => {
-				console.error("Failed to load logo:", config.Logo);
-				e.currentTarget.style.display = "none"; // optional fallback
-			}}
+				src={config.Logo}
+				alt={`${config.Name} Logo`}
+				className="w-10 h-10 object-contain"
+				onError={(e) => {
+					console.error("Failed to load logo:", config.Logo);
+					e.currentTarget.style.display = "none";
+				}}
 			/>
 		);
 	};
-
 
 	const renderIcon = (iconName: string) => {
 		switch (iconName) {
@@ -118,10 +125,9 @@ const Sidebar: React.FC = () => {
 			case 'archive':
 				return (
 					<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2v-7M4 7h16M4 7V5a2 2 0 012-2h12a2 2 0 012 2v2" />
+						<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2v-7M4 7h16M4 7V5a2 2 0 012-2h12a2 2 0 012 2v2" />
 					</svg>
 				);
-
 			default:
 				return null;
 		}
@@ -130,99 +136,117 @@ const Sidebar: React.FC = () => {
 	const handleLogout = async () => {
 		try {
 			await logout();
-			// Pas besoin de naviguer manuellement, le ProtectedRoute s'en chargera.
-			// La ligne suivante est optionnelle mais peut assurer une redirection immédiate.
 			navigate('/');
 		} catch (error) {
 			console.error("Erreur lors de la déconnexion :", error);
-			// Vous pourriez afficher une notification d'erreur ici si nécessaire
 		}
 	};
 
 	return (
-		<div className="bg-secondary-100 w-64 shadow-md fixed h-full flex-col hidden md:flex">
-			<div className="p-6 border-b border-secondary-300 flex justify-between items-center">
-				<NavLink to="/" className="flex items-center space-x-3">
-					<div className="flex items-center space-x-3">
-						{renderLogo()}
-						<h1 className="text-lg font-bold text-primary">{config.Name}</h1>
-					</div>
-				</NavLink>
-			</div>
+		<>
+			{/* Overlay pour mobile */}
+			{isMobileOpen && (
+				<div
+					className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+					onClick={() => setIsMobileOpen(false)}
+				/>
+			)}
 
-			<nav className="mt-6 flex-grow">
-				<div className="px-6 pb-4">
-					<p className="text-xs font-medium text-primary-800 uppercase tracking-wider mb-4">
-						{t('components:sidebar.main')}
-					</p>
-					<ul className="space-y-2">
-						{sidebarItems.filter(i => i.id === 'overview').map(item => (
-							<li key={item.id}>
-								<NavLink to="/dashboard" className={({ isActive }) => `flex items-center w-full px-4 py-2 rounded-md transition-colors ${
-									isActive ? 'bg-primary text-white' : 'hover:bg-secondary-300 text-primary-800'
-								}`} end>
-									<span className="mr-3">{renderIcon(item.icon)}</span>
-									<span>{item.label}</span>
-								</NavLink>
-							</li>
-						))}
-
-						<li>
-							<button
-								onClick={toggleBookManagement}
-								className={`flex items-center justify-between w-full px-4 py-2 rounded-md transition-colors ${
-									isBookManagementActive 
-										? 'bg-primary text-white' 
-										: 'hover:bg-secondary-300 text-primary-800'
-								}`}
-							>
-								<div className="flex items-center">
-									<span className="mr-3">{renderIcon('library')}</span>
-									<span>{t('components:sidebar.documents')}</span>
-								</div>
-								{isBookManagementOpen ? <FiChevronDown className="w-4 h-4" /> : <FiChevronRight className="w-4 h-4" />}
-							</button>
-
-							{isBookManagementOpen && (
-								<ul className="mt-2 ml-6 space-y-1">
-									{bookManagementItems.map(item => (
-										<li key={item.id}>
-											<NavLink to={`/dashboard/${item.id}`} className={({ isActive }) => `flex items-center w-full px-4 py-2 rounded-md transition-colors text-sm ${
-												isActive ? 'bg-primary text-white' : 'hover:bg-secondary-300 text-primary-700'
-											}`}>
-												<span className="mr-3">{renderIcon(item.icon)}</span>
-												<span>{item.label}</span>
-											</NavLink>
-										</li>
-									))}
-								</ul>
-							)}
-						</li>
-
-						{sidebarItems.filter(i => i.id !== 'overview').map(item => (
-							<li key={item.id}>
-								<NavLink to={`/dashboard/${item.id}`} className={({ isActive }) => `flex items-center w-full px-4 py-2 rounded-md transition-colors ${
-									isActive ? 'bg-primary text-white' : 'hover:bg-secondary-300 text-primary-800'
-								}`}>
-									<span className="mr-3">{renderIcon(item.icon)}</span>
-									<span>{item.label}</span>
-								</NavLink>
-							</li>
-						))}
-					</ul>
+			{/* Sidebar */}
+			<div className={`bg-secondary-100 w-64 shadow-md fixed h-full flex-col z-50 transition-transform duration-300 ease-in-out ${
+				isMobileOpen ? 'translate-x-0' : '-translate-x-full'
+			} md:translate-x-0 md:flex`}>
+				{/* Header avec bouton de fermeture pour mobile */}
+				<div className="p-6 border-b border-secondary-300 flex justify-between items-center">
+					<NavLink to="/" className="flex items-center space-x-3">
+						<div className="flex items-center space-x-3">
+							{renderLogo()}
+							<h1 className="text-lg font-bold text-primary">{config.Name}</h1>
+						</div>
+					</NavLink>
+					{/* Bouton de fermeture visible uniquement sur mobile */}
+					<button
+						onClick={() => setIsMobileOpen(false)}
+						className="md:hidden text-primary-800 hover:text-primary"
+					>
+						<FiX className="w-6 h-6" />
+					</button>
 				</div>
-			</nav>
 
-			<div className="mt-auto p-6 border-t border-secondary-300">
-				<button
-					onClick={handleLogout} // Utiliser notre nouvelle fonction ici
-					className="flex items-center w-full px-4 py-2 rounded-md transition-colors text-red-600 hover:bg-red-100 hover:text-red-800"
-				>
-					<span className="mr-3"><BiLogOut className="w-5 h-5" /></span>
-					<span>{t('components:sidebar.logout')}</span>
-				</button>
+				<nav className="mt-6 flex-grow overflow-y-auto">
+					<div className="px-6 pb-4">
+						<p className="text-xs font-medium text-primary-800 uppercase tracking-wider mb-4">
+							{t('components:sidebar.main')}
+						</p>
+						<ul className="space-y-2">
+							{sidebarItems.filter(i => i.id === 'overview').map(item => (
+								<li key={item.id}>
+									<NavLink to="/dashboard" className={({ isActive }) => `flex items-center w-full px-4 py-2 rounded-md transition-colors ${
+										isActive ? 'bg-primary text-white' : 'hover:bg-secondary-300 text-primary-800'
+									}`} end>
+										<span className="mr-3">{renderIcon(item.icon)}</span>
+										<span>{item.label}</span>
+									</NavLink>
+								</li>
+							))}
+
+							<li>
+								<button
+									onClick={toggleBookManagement}
+									className={`flex items-center justify-between w-full px-4 py-2 rounded-md transition-colors ${
+										isBookManagementActive 
+											? 'bg-primary text-white' 
+											: 'hover:bg-secondary-300 text-primary-800'
+									}`}
+								>
+									<div className="flex items-center">
+										<span className="mr-3">{renderIcon('library')}</span>
+										<span>{t('components:sidebar.documents')}</span>
+									</div>
+									{isBookManagementOpen ? <FiChevronDown className="w-4 h-4" /> : <FiChevronRight className="w-4 h-4" />}
+								</button>
+
+								{isBookManagementOpen && (
+									<ul className="mt-2 ml-6 space-y-1">
+										{bookManagementItems.map(item => (
+											<li key={item.id}>
+												<NavLink to={`/dashboard/${item.id}`} className={({ isActive }) => `flex items-center w-full px-4 py-2 rounded-md transition-colors text-sm ${
+													isActive ? 'bg-primary text-white' : 'hover:bg-secondary-300 text-primary-700'
+												}`}>
+													<span className="mr-3">{renderIcon(item.icon)}</span>
+													<span>{item.label}</span>
+												</NavLink>
+											</li>
+										))}
+									</ul>
+								)}
+							</li>
+
+							{sidebarItems.filter(i => i.id !== 'overview').map(item => (
+								<li key={item.id}>
+									<NavLink to={`/dashboard/${item.id}`} className={({ isActive }) => `flex items-center w-full px-4 py-2 rounded-md transition-colors ${
+										isActive ? 'bg-primary text-white' : 'hover:bg-secondary-300 text-primary-800'
+									}`}>
+										<span className="mr-3">{renderIcon(item.icon)}</span>
+										<span>{item.label}</span>
+									</NavLink>
+								</li>
+							))}
+						</ul>
+					</div>
+				</nav>
+
+				<div className="mt-auto p-6 border-t border-secondary-300">
+					<button
+						onClick={handleLogout}
+						className="flex items-center w-full px-4 py-2 rounded-md transition-colors text-red-600 hover:bg-red-100 hover:text-red-800"
+					>
+						<span className="mr-3"><BiLogOut className="w-5 h-5" /></span>
+						<span>{t('components:sidebar.logout')}</span>
+					</button>
+				</div>
 			</div>
-		</div>
+		</>
 	);
 };
 
