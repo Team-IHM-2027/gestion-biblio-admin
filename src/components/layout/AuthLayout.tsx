@@ -1,28 +1,52 @@
 // src/components/layout/AuthLayout.tsx
 import React from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, Link } from 'react-router-dom';
 import { useConfig } from '../theme/ConfigProvider';
-import Spinner from '../common/Spinner';
 
 const AuthLayout: React.FC = () => {
-	const { loading: configLoading } = useConfig();
+    const { config } = useConfig();
 
-	if (configLoading) {
-		return (
-			<div className="min-h-screen flex items-center justify-center bg-gray-900">
-				<Spinner />
-			</div>
-		);
-	}
+    const renderLogo = () => {
+        if (!config?.Logo) return null;
+        return (
+            <img
+                src={config.Logo}
+                alt={`${config.Name} Logo`}
+                className="w-16 h-16 object-contain mx-auto"
+                onError={(e) => {
+                    console.error("Failed to load logo:", config.Logo);
+                    e.currentTarget.style.display = "none";
+                }}
+            />
+        );
+    };
 
-	return (
-		<div className="min-h-screen w-full animated-gradient bg-gradient-to-br from-gray-900 via-primary-900 to-secondary-800">
-			<main className="min-h-screen flex flex-col items-center justify-center p-4">
-				{/* L'Outlet rendra le composant enfant (Login, Register, etc.) */}
-				<Outlet />
-			</main>
-		</div>
-	);
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center p-4">
+            <div className="w-full max-w-md">
+                {/* Carte d'authentification */}
+                <div className="bg-white rounded-2xl shadow-2xl p-8">
+                    {/* Logo + Titre */}
+                    <div className="text-center mb-8">
+                        <Link to="/" className="inline-block mb-4">
+                            {renderLogo()}
+                        </Link>
+                        <h2 className="text-2xl font-bold text-primary">{config.Name}</h2>
+                    </div>
+
+                    {/* Contenu (Login ou Register) */}
+                    <Outlet />
+                </div>
+
+                {/* Footer */}
+                <div className="text-center mt-6 text-white/80 text-sm">
+                    <Link to="/" className="hover:text-white transition">
+                        ← Retour à l'accueil
+                    </Link>
+                </div>
+            </div>
+        </div>
+    );
 };
 
 export default AuthLayout;
