@@ -3,7 +3,22 @@ import { useState, useEffect, useCallback } from 'react';
 import { reservationService } from '../services/reservationService';
 import type { ProcessedUserReservation } from '../types/reservations';
 import type { NotificationState } from '../types';
-;
+
+// Utilitaire pour extraire la date la plus récente d'une réservation pour un utilisateur
+const getLatestReservationDate = (user: ProcessedUserReservation): number => {
+  return user.reservationSlots.reduce((latest: number, slot: any) => {
+    const rawDate = slot.document.reservationDate;
+    let time = 0;
+    if (rawDate) {
+      if (typeof rawDate === 'object' && 'seconds' in rawDate) {
+        time = rawDate.seconds * 1000;
+      } else {
+        time = new Date(rawDate).getTime();
+      }
+    }
+    return (time > latest) ? time : latest;
+  }, 0);
+};
 
 export const useReservations = () => {
   const [reservations, setReservations] = useState<ProcessedUserReservation[]>([]);
@@ -11,41 +26,36 @@ export const useReservations = () => {
   const [processingItem, setProcessingItem] = useState<string | null>(null);
   const [maxLoans, setMaxLoans] = useState<number>(3);
   const [notification, setNotification] = useState<NotificationState>({
-    visible: false,
-    type: 'success',
-    message: ''
+    visible: false, type: 'success', message: ''
   });
 
-  // Charger les réservations
   const loadReservations = useCallback(async () => {
     try {
       setLoading(true);
-      
-      // Charger en parallèle les réservations et la configuration
       const [activeReservations, maxLoansConfig] = await Promise.all([
         reservationService.getActiveReservations(),
         reservationService.getMaxLoans()
       ]);
       
-      setReservations(activeReservations);
+      // --- MODIFICATION TÂCHE 9 (Tri par date descendante) ---
+      const sorted = [...activeReservations].sort((a, b) => 
+        getLatestReservationDate(b) - getLatestReservationDate(a)
+      );
+
+      setReservations(sorted);
       setMaxLoans(maxLoansConfig);
     } catch (error) {
       showNotification('error', 'Erreur lors du chargement des réservations');
-      console.error('Erreur:', error);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // Afficher une notification
   const showNotification = useCallback((type: 'success' | 'error', message: string) => {
     setNotification({ visible: true, type, message });
-    setTimeout(() => {
-      setNotification({ visible: false, type: 'success', message: '' });
-    }, 3000);
+    setTimeout(() => setNotification(prev => ({ ...prev, visible: false })), 3000);
   }, []);
 
-  // Valider une réservation (la transformer en emprunt)
   const validateReservation = useCallback(async (
     user: ProcessedUserReservation, 
     slot: number,
@@ -53,43 +63,24 @@ export const useReservations = () => {
   ) => {
     const processingKey = `${user.email}-${slot}`;
     setProcessingItem(processingKey);
-
     try {
-      const slotData = user.reservationSlots.find(s => s.slotNumber === slot);
-      
-      if (!slotData || !slotData.document) {
-        throw new Error(`Aucune réservation trouvée pour le slot ${slot}`);
-      }
-
       await reservationService.validateReservationForProcessedUser(user, slot);
       
-      const documentName = slotData.document.name;
-      showNotification('success', `${t('document')} "${documentName}" ${t('borrowed_successfully')}`);
+      // --- CORRECTION TÂCHE 6 (Traduction) ---
+      showNotification('success', t('components:reservations.loan_success_message') || 'Emprunt enregistré avec succès.');
       
-      // Recharger les données
       await loadReservations();
-      
     } catch (error) {
-      console.error('Erreur lors de la validation:', error);
-      showNotification('error', t('validation_error'));
+      showNotification('error', t('components:reservations.validation_error') || 'Erreur lors de la validation.');
     } finally {
       setProcessingItem(null);
     }
   }, [loadReservations, showNotification]);
 
-  // Charger les données au montage
-  useEffect(() => {
-    loadReservations();
-  }, [loadReservations]);
+  useEffect(() => { loadReservations(); }, [loadReservations]);
 
   return {
-    reservations,
-    loading,
-    processingItem,
-    notification,
-    maxLoans,
-    validateReservation,
-    loadReservations,
-    showNotification
+    reservations, loading, processingItem, notification,
+    maxLoans, validateReservation, loadReservations, showNotification
   };
 };

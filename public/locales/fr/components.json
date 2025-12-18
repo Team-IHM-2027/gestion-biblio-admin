@@ -88,6 +88,8 @@
     "borrowed": "Emprunté"
   },
   "loans": {
+     "loan_success_message": "Emprunt enregistré avec succès.",
+    "return_success_message": "Retour enregistré avec succès.",
     "title": "Emprunts Actuels",
     "email": "Email",
     "level": "Niveau",
@@ -103,7 +105,8 @@
     "no_loans_message": "Lorsque les étudiants emprunteront des documents, ils apparaîtront ici",
     "no_active_loans": "Aucun document emprunté",
     "new_loan": "Nouvel Emprunt",
-    "loading": "Chargement des emprunts..."
+    "loading": "Chargement des emprunts...",
+    "due_date": "Retour Prévu"
   },
   "reservations": {
     "title": "Liste des Réservations",

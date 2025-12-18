@@ -1,4 +1,3 @@
-// pages/Overview.tsx
 import React from 'react';
 import {
   LineChart,
@@ -59,26 +58,27 @@ const Overview: React.FC = () => {
         {/* Help Banner */}
         <HelpBanner />
 
-        {/* Statistics Grid */}
+        {/* Statistics Grid - Tâche 1 : Modification des libellés et réorganisation */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-          {/* Statistiques des livres */}
+          
+          {/* Groupe 1 : Statistiques des Livres */}
           <StatCard
             icon="Book"
-            title={t('components:dashboard.total_books')}
+            title="Titres de Livres Uniques" // Modifié
             value={stats.totalBooks}
             description={t('components:dashboard.desc_unique_titles')}
             color="blue"
           />
           <StatCard
             icon="BookCopy"
-            title={t('components:dashboard.total_inventory')}
+            title="Total d'Exemplaires" // Modifié
             value={stats.totalBookExemplaires}
             description={t('components:dashboard.desc_total_inventory')}
             color="green"
           />
           <StatCard
             icon="BookOpen"
-            title={t('components:dashboard.available_for_reservation')}
+            title="Exemplaires Disponibles" // Modifié
             value={stats.availableExemplaires}
             percentage={(stats.availableExemplaires / stats.totalBookExemplaires) * 100}
             description={t('components:dashboard.desc_available')}
@@ -86,73 +86,76 @@ const Overview: React.FC = () => {
           />
           <StatCard
             icon="BookMarked"
-            title={t('components:dashboard.physically_present')}
+            title="Exemplaires Présents" // Modifié
             value={stats.physicallyPresentBooks}
             percentage={(stats.physicallyPresentBooks / stats.totalBookExemplaires) * 100}
             description={t('components:dashboard.desc_physically_present')}
             color="purple"
           />
 
-          {/* Autres statistiques */}
-          <StatCard
-            icon="GraduationCap"
-            title={t('components:dashboard.total_theses')}
-            value={stats.totalTheses}
-            color="orange"
-          />
+          {/* Groupe 2 : Statistiques des Utilisateurs & Thèses */}
           <StatCard
             icon="Users"
-            title={t('components:dashboard.registered_students')}
+            title="Total Étudiants" // Modifié
             value={stats.totalStudents}
             color="blue"
           />
           <StatCard
+            icon="UserX"
+            title="Étudiants Suspendus" // Modifié
+            value={stats.suspendedStudents}
+            percentage={(stats.suspendedStudents / stats.totalStudents) * 100}
+            color="red"
+          />
+          <StatCard
+            icon="GraduationCap"
+            title="Mémoires/Thèses Total" // Modifié
+            value={stats.totalTheses}
+            color="orange"
+          />
+          <StatCard
+            icon="UserCheck"
+            title="Étudiants Ayant Emprunté" // Modifié
+            value={stats.totalEmprunts}
+            percentage={(stats.totalEmprunts / stats.totalStudents) * 100}
+            description={t('components:dashboard.desc_people_borrowed')}
+            color="green"
+          />
+
+          {/* Groupe 3 : Statistiques d'Activité (Emprunts/Réservations) */}
+          <StatCard
             icon="CreditCard"
-            title={t('components:dashboard.borrowed_documents')}
+            title="Documents Empruntés Actuellement" // Modifié
             value={stats.borrowedDocuments}
             percentage={(stats.borrowedDocuments / stats.totalBookExemplaires) * 100}
             description={t('components:dashboard.desc_borrowed')}
             color="primary"
           />
           <StatCard
+            icon="BarChart3"
+            title="Total Réservations" // Modifié
+            value={stats.totalReservations}
+            color="purple"
+          />
+          <StatCard
             icon="Clock"
-            title={t('components:dashboard.reserved_not_picked')}
+            title="Réservations en Attente" // Modifié
             value={stats.reservedNotPickedUp}
             percentage={(stats.reservedNotPickedUp / stats.totalBookExemplaires) * 100}
             description={t('components:dashboard.desc_reserved')}
             color="yellow"
           />
           <StatCard
-            icon="UserCheck"
-            title={t('components:dashboard.people_borrowed')}
-            value={stats.totalEmprunts}
-            percentage={(stats.totalEmprunts / stats.totalStudents) * 100}
-            description={t('components:dashboard.desc_people_borrowed')}
-            color="green"
-          />
-          <StatCard
-            icon="UserX"
-            title={t('components:dashboard.suspended_students')}
-            value={stats.suspendedStudents}
-            percentage={(stats.suspendedStudents / stats.totalStudents) * 100}
-            color="red"
-          />
-          <StatCard
-            icon="BarChart3"
-            title={t('components:dashboard.total_reservations')}
-            value={stats.totalReservations}
-            color="purple"
-          />
-          <StatCard
             icon="TrendingUp"
-            title={t('components:dashboard.reservation_to_borrow')}
+            title="Ratio Réservation / Emprunt" // Modifié
             value={`${stats.reservationToBorrowRatio.toFixed(1)}%`}
             description={t('components:dashboard.desc_reservation_ratio')}
             color="orange"
           />
         </div>
+        {/* Fin des modifications de la Tâche 1 */}
 
-        {/* Additional Stats Grid - Listes de livres */}
+        {/* Additional Stats Grid - Listes de livres (Aucun changement ici) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <BookList
             title={t('components:dashboard.top_borrowed')}
@@ -185,7 +188,7 @@ const Overview: React.FC = () => {
           />
         </div>
 
-        {/* Current Week Borrows Chart */}
+        {/* Current Week Borrows Chart (Aucun changement ici) */}
         <div className="mb-8">
           <ChartCard title={t('components:dashboard.current_week')}>
             <ResponsiveContainer width="100%" height="100%">
@@ -200,7 +203,7 @@ const Overview: React.FC = () => {
           </ChartCard>
         </div>
 
-        {/* Charts Container */}
+        {/* Charts Container (Aucun changement ici) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
           {/* Emprunts par département - Pie Chart */}
           <ChartCard title={t('components:dashboard.borrows_by_department')}>
@@ -249,7 +252,7 @@ const Overview: React.FC = () => {
           </ChartCard>
         </div>
 
-        {/* Monthly Borrows Line Chart */}
+        {/* Monthly Borrows Line Chart (Aucun changement ici) */}
         <ChartCard title={t('components:dashboard.monthly_borrows')}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={stats.monthlyBorrows}>

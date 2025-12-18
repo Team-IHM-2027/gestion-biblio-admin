@@ -60,15 +60,15 @@ export const useLoans = () => {
       // Appel au service avec la nouvelle logique (ID direct)
       await loanService.returnDocumentForProcessedUser(user, slot);
 
-      const documentName = slotData.document.name;
-      showNotification('success', `${t('document')} "${documentName}" ${t('returned_successfully')}`);
+      // --- MODIFICATION TÂCHE 6 - PARTIE 1 ---
+      showNotification('success', t('return_success_message') || 'Retour enregistré avec succès.');
       
       // Recharger les données
       await loadLoans();
       
     } catch (error) {
       console.error('Erreur lors du retour:', error);
-      showNotification('error', t('return_error'));
+      showNotification('error', t('return_error') || 'Erreur lors de l\'enregistrement du retour.');
     } finally {
       setProcessingItem(null);
     }

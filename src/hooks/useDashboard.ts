@@ -1,5 +1,6 @@
-// hooks/useDashboard.ts
 import { useState, useEffect, useCallback } from 'react';
+import { doc, getDoc } from 'firebase/firestore'; // Importé pour récupérer les noms
+import { db } from '../config/firebase'; // Importé pour la connexion base de données
 import { dashboardService } from '../services/dashboardService';
 import type { DashboardStats } from '../types/dashboard';
 
@@ -30,19 +31,49 @@ export const useDashboard = () => {
 
   const [loading, setLoading] = useState(true);
 
-  // Mettre à jour les statistiques partielles
   const updateStats = useCallback((newStats: Partial<DashboardStats>) => {
     setStats(prevStats => ({ ...prevStats, ...newStats }));
   }, []);
 
-  // Charger les données asynchrones
+  // Fonction utilitaire pour récupérer le nom d'un livre à partir de son ID
+  const getBookName = async (bookId: string): Promise<string> => {
+    if (!bookId || bookId === 'ras') return 'Document inconnu';
+    try {
+      const bookDocRef = doc(db, 'BiblioBooks', bookId);
+      const bookSnap = await getDoc(bookDocRef);
+      if (bookSnap.exists()) {
+        const data = bookSnap.data();
+        return data.name || data.title || bookId;
+      }
+      return bookId;
+    } catch (error) {
+      return bookId;
+    }
+  };
+
   const loadAsyncData = useCallback(async () => {
     try {
-      const [topBorrowedBooks, currentWeekBorrows, recentlyReturnedBooks] = await Promise.all([
+      const [rawTopBooks, currentWeekBorrows, rawReturnedBooks] = await Promise.all([
         dashboardService.getTopBorrowedBooks(),
         dashboardService.getCurrentWeekBorrows(),
         dashboardService.getRecentlyReturnedBooks()
       ]);
+
+      // Enrichissement des Livres Récemment Retournés (Conversion ID -> Nom)
+      const recentlyReturnedBooks = await Promise.all(
+        rawReturnedBooks.map(async (record: any) => ({
+          ...record,
+          titre: await getBookName(record.titre)
+        }))
+      );
+
+      // Enrichissement du Top 5 des Livres (Conversion ID -> Nom)
+      const topBorrowedBooks = await Promise.all(
+        rawTopBooks.map(async (book: any) => ({
+          ...book,
+          name: await getBookName(book.name)
+        }))
+      );
 
       updateStats({
         topBorrowedBooks,
@@ -63,16 +94,12 @@ export const useDashboard = () => {
     const initializeData = async () => {
       try {
         setLoading(true);
-
-        // S'abonner aux changements en temps réel
         unsubscribeMemories = dashboardService.subscribeToMemoriesStats(updateStats);
         unsubscribeBooks = dashboardService.subscribeToBooksStats(updateStats);
         unsubscribeUsers = dashboardService.subscribeToUsersStats(updateStats);
         unsubscribeArchives = dashboardService.subscribeToMonthlyBorrows(updateStats);
 
-        // Charger les données asynchrones
         await loadAsyncData();
-
         setLoading(false);
       } catch (error) {
         console.error('Erreur lors de l\'initialisation du dashboard:', error);
@@ -82,7 +109,6 @@ export const useDashboard = () => {
 
     initializeData();
 
-    // Nettoyer les souscriptions
     return () => {
       if (unsubscribeMemories) unsubscribeMemories();
       if (unsubscribeBooks) unsubscribeBooks();
@@ -91,16 +117,10 @@ export const useDashboard = () => {
     };
   }, [updateStats, loadAsyncData]);
 
-  // Calculer les métriques dérivées
   const physicallyPresentBooks = stats.totalBookExemplaires - stats.borrowedDocuments;
 
-  const derivedStats = {
-    ...stats,
-    physicallyPresentBooks
-  };
-
   return {
-    stats: derivedStats,
+    stats: { ...stats, physicallyPresentBooks },
     loading,
     refreshData: loadAsyncData
   };
