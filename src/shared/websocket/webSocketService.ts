@@ -159,11 +159,11 @@ class WebSocketService {
     });
   }
 
-  public cleanup() {
-    this.disconnect();
-    this.listeners.clear();
-    this.notificationListeners = [];
-  }
+  // public cleanup() {
+  //   this.disconnect();
+  //   this.listeners.clear();
+  //   this.notificationListeners = [];
+  // }
 }
 
 export const websocketService = new WebSocketService();
