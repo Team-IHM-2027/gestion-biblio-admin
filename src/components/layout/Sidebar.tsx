@@ -19,9 +19,10 @@ const Sidebar: React.FC = () => {
 		{ id: 'users', label: t('components:sidebar.users'), icon: 'users' },
 		{ id: 'loans', label: t('components:sidebar.loans'), icon: 'clipboard-list' },
 		{ id: 'reservations', label: t('components:sidebar.reservations'), icon: 'clipboard-check' },
+		{ id: 'validated-reservations', label: t('components:sidebar.validated_reservations'), icon: 'check-circle' },
 		{ id: 'archives', label: t('components:sidebar.archives'), icon: 'archive' },
 		{ id: 'settings', label: t('components:sidebar.settings'), icon: 'cog' },
-		
+
 	];
 
 	const bookManagementItems = [
@@ -50,13 +51,13 @@ const Sidebar: React.FC = () => {
 		if (!config?.Logo) return null; // wait until config is loaded
 		return (
 			<img
-			src={config.Logo}
-			alt={`${config.Name} Logo`}
-			className="w-10 h-10 object-contain"
-			onError={(e) => {
-				console.error("Failed to load logo:", config.Logo);
-				e.currentTarget.style.display = "none"; // optional fallback
-			}}
+				src={config.Logo}
+				alt={`${config.Name} Logo`}
+				className="w-10 h-10 object-contain"
+				onError={(e) => {
+					console.error("Failed to load logo:", config.Logo);
+					e.currentTarget.style.display = "none"; // optional fallback
+				}}
 			/>
 		);
 	};
@@ -102,6 +103,12 @@ const Sidebar: React.FC = () => {
 						<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
 					</svg>
 				);
+			case 'check-circle':
+				return (
+					<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+					</svg>
+				);
 			case 'cog':
 				return (
 					<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -118,7 +125,7 @@ const Sidebar: React.FC = () => {
 			case 'archive':
 				return (
 					<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2v-7M4 7h16M4 7V5a2 2 0 012-2h12a2 2 0 012 2v2" />
+						<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2v-7M4 7h16M4 7V5a2 2 0 012-2h12a2 2 0 012 2v2" />
 					</svg>
 				);
 
@@ -158,9 +165,8 @@ const Sidebar: React.FC = () => {
 					<ul className="space-y-2">
 						{sidebarItems.filter(i => i.id === 'overview').map(item => (
 							<li key={item.id}>
-								<NavLink to="/dashboard" className={({ isActive }) => `flex items-center w-full px-4 py-2 rounded-md transition-colors ${
-									isActive ? 'bg-primary text-white' : 'hover:bg-secondary-300 text-primary-800'
-								}`} end>
+								<NavLink to="/dashboard" className={({ isActive }) => `flex items-center w-full px-4 py-2 rounded-md transition-colors ${isActive ? 'bg-primary text-white' : 'hover:bg-secondary-300 text-primary-800'
+									}`} end>
 									<span className="mr-3">{renderIcon(item.icon)}</span>
 									<span>{item.label}</span>
 								</NavLink>
@@ -170,11 +176,10 @@ const Sidebar: React.FC = () => {
 						<li>
 							<button
 								onClick={toggleBookManagement}
-								className={`flex items-center justify-between w-full px-4 py-2 rounded-md transition-colors ${
-									isBookManagementActive 
-										? 'bg-primary text-white' 
-										: 'hover:bg-secondary-300 text-primary-800'
-								}`}
+								className={`flex items-center justify-between w-full px-4 py-2 rounded-md transition-colors ${isBookManagementActive
+									? 'bg-primary text-white'
+									: 'hover:bg-secondary-300 text-primary-800'
+									}`}
 							>
 								<div className="flex items-center">
 									<span className="mr-3">{renderIcon('library')}</span>
@@ -187,9 +192,8 @@ const Sidebar: React.FC = () => {
 								<ul className="mt-2 ml-6 space-y-1">
 									{bookManagementItems.map(item => (
 										<li key={item.id}>
-											<NavLink to={`/dashboard/${item.id}`} className={({ isActive }) => `flex items-center w-full px-4 py-2 rounded-md transition-colors text-sm ${
-												isActive ? 'bg-primary text-white' : 'hover:bg-secondary-300 text-primary-700'
-											}`}>
+											<NavLink to={`/dashboard/${item.id}`} className={({ isActive }) => `flex items-center w-full px-4 py-2 rounded-md transition-colors text-sm ${isActive ? 'bg-primary text-white' : 'hover:bg-secondary-300 text-primary-700'
+												}`}>
 												<span className="mr-3">{renderIcon(item.icon)}</span>
 												<span>{item.label}</span>
 											</NavLink>
@@ -201,9 +205,8 @@ const Sidebar: React.FC = () => {
 
 						{sidebarItems.filter(i => i.id !== 'overview').map(item => (
 							<li key={item.id}>
-								<NavLink to={`/dashboard/${item.id}`} className={({ isActive }) => `flex items-center w-full px-4 py-2 rounded-md transition-colors ${
-									isActive ? 'bg-primary text-white' : 'hover:bg-secondary-300 text-primary-800'
-								}`}>
+								<NavLink to={`/dashboard/${item.id}`} className={({ isActive }) => `flex items-center w-full px-4 py-2 rounded-md transition-colors ${isActive ? 'bg-primary text-white' : 'hover:bg-secondary-300 text-primary-800'
+									}`}>
 									<span className="mr-3">{renderIcon(item.icon)}</span>
 									<span>{item.label}</span>
 								</NavLink>

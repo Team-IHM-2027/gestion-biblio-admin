@@ -10,21 +10,21 @@ export interface UserReservation {
   imageUri?: string;
   departement?: string;
   createdAt?: string | Date | Timestamp;
-  
+
   // Dynamic state slots (based on MaximumSimultaneousLoans)
   // For example: etat1, etat2, etat3
-  etat1?: 'reserv' | 'emprunt' | 'ras' | string;
-  etat2?: 'reserv' | 'emprunt' | 'ras' | string;
-  etat3?: 'reserv' | 'emprunt' | 'ras' | string;
+  etat1?: 'reserv' | 'emprunt' | 'ras' | 'valide' | string;
+  etat2?: 'reserv' | 'emprunt' | 'ras' | 'valide' | string;
+  etat3?: 'reserv' | 'emprunt' | 'ras' | 'valide' | string;
   // Add more as needed based on your max loans configuration
-  
+
   // Dynamic tab state arrays
   // For example: tabEtat1, tabEtat2, tabEtat3
   tabEtat1?: any[]; // [bookId, bookName, category, imageUrl, collection, reservationDate, exemplaires]
   tabEtat2?: any[];
   tabEtat3?: any[];
   // Add more as needed
-  
+
   // Reservations array from your actual structure
   reservations?: Array<{
     bookId?: string;
@@ -38,14 +38,14 @@ export interface UserReservation {
     category?: string; // Alternative spelling
     collection?: string; // Alternative field name
   }>;
-  
+
   // For dynamic property access
   [key: string]: any;
 }
 
 export interface ReservationSlot {
   slotNumber: number;
-  status: 'reserv' | 'emprunt' | 'ras';
+  status: 'reserv' | 'emprunt' | 'ras' | 'valide';
   document: {
     id: string; // The actual book ID (first element in tabEtat array)
     name: string; // Book name (second element or fetched from book document)
@@ -128,7 +128,7 @@ export interface Notification {
   relatedDocId: string;
   senderId: string;
   createdAt: string | Date | Timestamp;
-  
+
   // Reservation-specific fields
   userId?: string;
   userName?: string;
@@ -152,7 +152,7 @@ export interface ValidationResult {
 }
 
 // Rejection reasons type
-export type RejectionReason = 
+export type RejectionReason =
   | 'Book unavailable'
   | 'Maximum reservations reached'
   | 'User not eligible'

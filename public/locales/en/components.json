@@ -5,13 +5,14 @@
     "messages": "Messages",
     "profile": "Profile",
     "theme": "Theme",
-    "back": "Back"
+    "back": "Back",
+    "navbar_notifications": "Notifications"
   },
   "sidebar": {
     "main": "Main",
-    "overview": "Overview", 
+    "overview": "Overview",
     "users": "Users",
-    "loans": "Loans", 
+    "loans": "Loans",
     "returns": "Returns",
     "settings": "Settings",
     "theme": "Theme",
@@ -19,8 +20,9 @@
     "book_management": "Book",
     "memory_management": "Thesis",
     "logout": "Logout",
-    "more":"More",
+    "more": "More",
     "reservations": "Reservations",
+    "validated_reservations": "Validated Reservations",
     "archives": "Archives"
   },
   "footer": {
@@ -121,9 +123,14 @@
     "no_reservations": "No current reservations",
     "no_reservations_message": "When users reserve documents, they will appear here",
     "no_active_reservations": "No active reservations",
+    "no_pending_message": "No pending requests at the moment.",
     "awaiting_validation": "Awaiting validation",
     "validation_info": "Click 'Validate Loan' to transform a reservation into an active loan",
-    "loading": "Loading reservations..."
+    "loading": "Loading reservations...",
+    "validated_title": "Validated Reservations",
+    "no_validated_reservations": "No reservations awaiting pickup",
+    "no_validated_message": "Validated reservations will appear here once approved.",
+    "validated_info_banner": "These reservations have been approved. Click 'Validate' to confirm the loan when the student picks up the book."
   },
   "title": "Document Returns",
   "return_date": "Return Date",
@@ -227,7 +234,6 @@
   "success": "Success",
   "warning": "Warning",
   "info": "Information",
-  
   "profile": {
     "page_title": "User Profile",
     "personal_info": "Personal Information",
@@ -243,7 +249,6 @@
     "user_department": "Department",
     "user_bio": "Biography",
     "avatar_image": "Profile Image",
-    
     "status": {
       "unnamed_user": "Unnamed User",
       "info_unknown": "Account Status Undefined",
@@ -251,9 +256,7 @@
     },
     "not_connected": "Not Connected",
     "not_connected_info": "Please log in to view your profile information."
-  
   },
-    
   "input_placeholders": {
     "enter_name": "Enter your full name",
     "enter_email": "Enter your email address",
@@ -263,13 +266,11 @@
     "enter_bio": "Tell us about yourself in a few words...",
     "choose_gender": "Select your gender"
   },
-    
   "gender_options": {
     "male_option": "Male",
     "female_option": "Female",
     "select_gender": "Choose an option"
   },
-    
   "action_buttons": {
     "edit_profile": "Edit Profile",
     "save_modifications": "Save Changes",
@@ -279,7 +280,6 @@
     "upload_image": "Upload Image",
     "change_avatar": "Change Avatar"
   },
-    
   "statistics": {
     "account_duration": "Account Age",
     "last_connection": "Last Login",
@@ -292,7 +292,6 @@
     "login_total": "Total Logins",
     "completion_percentage": "Completion Percentage"
   },
-    
   "user_status": {
     "account_active": "Account Active",
     "account_inactive": "Account Inactive",
@@ -301,7 +300,6 @@
     "role_user": "User",
     "no_name_user": "Unnamed User"
   },
-  
   "account_information": {
     "registration_date": "Registration Date",
     "last_profile_update": "Last Profile Update",
@@ -311,14 +309,12 @@
     "never_updated": "Never Updated",
     "data_unavailable": "Data Unavailable"
   },
-  
   "navigation_actions": {
     "browse_books": "Browse Books",
     "check_loans": "Check Loans",
     "view_reservations": "View Reservations",
     "go_to_dashboard": "Go to Dashboard"
   },
-    
   "form_validation": {
     "name_is_required": "Name is required",
     "name_too_short": "Name must be at least 2 characters",
@@ -332,7 +328,6 @@
     "maximum_characters": "Maximum {{max}} characters allowed",
     "invalid_input_format": "Invalid input format"
   },
-  
   "user_messages": {
     "profile_save_success": "Profile saved successfully",
     "image_upload_success": "Image uploaded successfully",
@@ -346,7 +341,6 @@
     "character_count": "characters",
     "account_deletion_success": "Account deleted successfully"
   },
-  
   "security_section": {
     "security_title": "Account Security",
     "password_field": "Password",
@@ -362,7 +356,6 @@
     "password_changed_on": "Password changed on {{date}}",
     "no_password_history": "No change history"
   },
-  
   "danger_section": {
     "danger_zone_title": "Danger Zone",
     "danger_zone_warning": "These actions are final and irreversible",
@@ -380,13 +373,11 @@
     "confirm_account_deletion": "Yes, permanently delete my account",
     "delete_action": "Delete"
   },
-  
   "privacy_section": {
     "privacy_title": "Privacy",
     "private_account": "Private Account",
     "private_account_desc": "Your profile will only be visible to yourself"
   },
-  
   "notification_preferences": {
     "notifications_title": "Notification Preferences",
     "email_notifications": "Email Notifications",
@@ -396,7 +387,6 @@
     "system_news": "System News",
     "system_news_desc": "Information about new features"
   },
-  
   "image_upload": {
     "click_or_drop": "Click or drag and drop an image",
     "supported_file_types": "Supported formats: JPG, PNG, WebP",
@@ -406,23 +396,19 @@
     "unsupported_format": "Unsupported file format",
     "file_size_exceeded": "File size too large"
   },
-  
   "profile_completion": {
     "fields_missing": "Missing fields to complete your profile",
     "completion_rate": "{{percentage}}% of profile completed"
   },
-  
   "page_states": {
     "offline_user_info": "User offline - Log in to access your information",
     "demonstration_mode": "Demonstration Mode",
     "profile_loading": "Profile loading in progress...",
     "profile_load_failed": "Profile loading failed"
   },
-    
   "students": {
     "students_list": "Students List",
     "manage_students_desc": "Manage student accounts and their access permissions",
-    
     "profile_picture": "Profile Picture",
     "information": "Information",
     "phone": "Phone",
@@ -431,18 +417,15 @@
     "student_id": "Student ID",
     "level": "Level",
     "no_phone": "No phone",
-    
     "active": "Active",
     "blocked": "Blocked",
     "lock": "Block",
     "unlock": "Unblock",
-    
     "all_status": "All statuses",
     "recent_date": "Recent Date",
     "old_date": "Oldest Date",
     "sort_by_name": "Sort by Name",
     "sort_by_level": "Sort by Level",
-    
     "filters": "Filters",
     "filter_by_status": "Filter by Status",
     "filter_by_level": "Filter by Level",
@@ -451,77 +434,62 @@
     "enter_level": "Enter level",
     "enter_department": "Enter department",
     "clear_filters": "Clear filters",
-    
     "students_total": "students total",
     "students": "students",
     "of": "of",
     "total": "Total",
-    
     "loading": "Loading students...",
     "no_students_found": "No students found",
     "no_students_message": "No students match the search criteria",
     "error_loading": "Error loading students",
     "retry": "Retry",
-    
     "showing": "Showing",
     "to": "to",
     "results": "results",
     "previous": "Previous",
     "next": "Next",
-    
     "student_blocked_success": "Student blocked successfully",
     "student_unblocked_success": "Student unblocked successfully",
     "status_update_error": "Error updating status",
-    
     "bulk_actions": "Bulk Actions",
     "select_all": "Select All",
     "selected_count": "{{count}} selected",
     "block_selected": "Block Selected",
     "unblock_selected": "Unblock Selected",
     "delete_selected": "Delete Selected",
-    
     "confirm_block": "Confirm Block",
     "confirm_unblock": "Confirm Unblock",
     "confirm_delete": "Confirm Delete",
     "block_student_message": "Are you sure you want to block this student?",
     "unblock_student_message": "Are you sure you want to unblock this student?",
     "delete_student_message": "Are you sure you want to delete this student? This action is irreversible.",
-    
     "export": "Export",
     "export_csv": "Export to CSV",
     "export_excel": "Export to Excel",
     "export_pdf": "Export to PDF",
-    
     "search_placeholder": "Search by name, email or student ID...",
     "advanced_search": "Advanced Search",
-    
     "statistics": "Statistics",
     "recent_registrations": "Recent Registrations",
     "by_level": "By Level",
     "by_department": "By Department",
-    
     "student_details": "Student Details",
     "edit_student": "Edit Student",
     "view_student": "View Student",
     "student_history": "Student History",
-    
     "registration_date": "Registration Date",
     "last_activity": "Last Activity",
     "account_created": "Account created on",
     "never_connected": "Never connected",
-    
     "email": "Email",
     "gender": "Gender",
     "address": "Address",
     "birth_date": "Birth Date",
     "department": "Department",
-    
     "male": "Male",
     "female": "Female",
-    
     "actions_history": "Actions History",
     "no_actions": "No actions recorded",
-    
     "refresh": "Refresh",
     "add_student": "Add Student",
     "import_students": "Import Students"
