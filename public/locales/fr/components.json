@@ -5,13 +5,14 @@
     "messages": "Messages",
     "profile": "Profil",
     "theme": "Thème",
-    "back": "Retour"
+    "back": "Retour",
+    "navbar_notifications": "Notifications"
   },
   "sidebar": {
     "main": "Principal",
-    "overview": "Aperçu", 
+    "overview": "Aperçu",
     "users": "Utilisateurs",
-    "loans": "Emprunts", 
+    "loans": "Emprunts",
     "returns": "Retours",
     "settings": "Paramètres",
     "theme": "Thème",
@@ -21,6 +22,7 @@
     "logout": "Déconnexion",
     "more": "Plus",
     "reservations": "Réservations",
+    "validated_reservations": "Réservations Validées",
     "archives": "Archives"
   },
   "footer": {
@@ -88,7 +90,7 @@
     "borrowed": "Emprunté"
   },
   "loans": {
-     "loan_success_message": "Emprunt enregistré avec succès.",
+    "loan_success_message": "Emprunt enregistré avec succès.",
     "return_success_message": "Retour enregistré avec succès.",
     "title": "Emprunts Actuels",
     "email": "Email",
@@ -124,9 +126,14 @@
     "no_reservations": "Aucune réservation en cours",
     "no_reservations_message": "Lorsque les utilisateurs réservent des documents, ils apparaîtront ici",
     "no_active_reservations": "Aucune réservation active",
+    "no_pending_message": "Aucune demande en attente pour le moment.",
     "awaiting_validation": "En attente de validation",
     "validation_info": "Cliquez sur 'Valider l'Emprunt' pour transformer une réservation en emprunt actif",
-    "loading": "Chargement des réservations..."
+    "loading": "Chargement des réservations...",
+    "validated_title": "Réservations Validées",
+    "no_validated_reservations": "Aucune réservation en attente de retrait",
+    "no_validated_message": "Les réservations validées apparaîtront ici une fois approuvées.",
+    "validated_info_banner": "Ces réservations ont été approuvées. Cliquez sur 'Valider' pour confirmer le prêt lorsque l'étudiant récupère le livre."
   },
   "title": "Retours de Documents",
   "return_date": "Date de Retour",
@@ -245,8 +252,6 @@
     "user_department": "Département",
     "user_bio": "Biographie",
     "avatar_image": "Image de Profil",
-    
-    
     "status": {
       "unnamed_user": "Utilisateur Sans Nom",
       "not_connected": "Veuillez vous connecter",
@@ -255,7 +260,6 @@
     },
     "not_connected": "Non connecté",
     "not_connected_info": "Veuillez vous connecter pour accéder aux informations de votre profil."
-   
   },
   "input_placeholders": {
     "enter_name": "Entrez votre nom complet",

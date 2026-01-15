@@ -1,5 +1,6 @@
-import { collection, doc, updateDoc, query, where, getDocs, getDoc, Timestamp, arrayRemove, arrayUnion } from 'firebase/firestore';
+import { collection, doc, updateDoc, query, where, getDocs, getDoc, Timestamp, arrayRemove, arrayUnion, addDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import { notificationService } from './notificationService';
 import { fetchMaximumSimultaneousLoans } from './configService';
 import type { ProcessedUserReservation, ReservationSlot, UserReservation } from '../types/reservations';
 
@@ -25,14 +26,14 @@ export class ReservationService {
         return await fetchMaximumSimultaneousLoans();
     }
 
-    processUserReservationData(userData: UserReservation, maxLoans: number): ProcessedUserReservation {
+    processUserReservationData(userData: UserReservation, maxLoans: number, statusFilter: string = 'reserv'): ProcessedUserReservation {
         const reservationSlots: ReservationSlot[] = [];
 
         for (let i = 1; i <= maxLoans; i++) {
-            const status = userData[`etat${i}`] as 'reserv' | 'emprunt' | 'ras';
+            const status = userData[`etat${i}`] as 'reserv' | 'emprunt' | 'ras' | 'valide';
             const tabData = userData[`tabEtat${i}`] as [string, string, string, string, string, string, number] | any[];
 
-            if (status === 'reserv' && tabData?.[0]) {
+            if (status === statusFilter && tabData?.[0]) {
                 reservationSlots.push({
                     slotNumber: i,
                     status,
@@ -60,19 +61,19 @@ export class ReservationService {
         };
     }
 
-    async getActiveReservations(): Promise<ProcessedUserReservation[]> {
+    async getActiveReservations(statusFilter: string = 'reserv'): Promise<ProcessedUserReservation[]> {
         try {
             const maxLoans = await this.getMaxLoans();
             const snapshot = await getDocs(this.userCollection);
             const rawUsers: ProcessedUserReservation[] = [];
 
             snapshot.forEach((docSnap) => {
-                const userData = { ...docSnap.data(), email: docSnap.id } as UserReservation;
+                const userData = { ...docSnap.data(), email: docSnap.id } as UserReservation; // Cast to UserReservation
                 const hasActiveReservations = Array.from({ length: maxLoans }, (_, i) => i + 1)
-                    .some(i => userData[`etat${i}`] === 'reserv');
+                    .some(i => userData[`etat${i}`] === statusFilter);
 
                 if (hasActiveReservations) {
-                    rawUsers.push(this.processUserReservationData(userData, maxLoans));
+                    rawUsers.push(this.processUserReservationData(userData as UserReservation, maxLoans, statusFilter));
                 }
             });
 
@@ -136,7 +137,7 @@ export class ReservationService {
             // 1. Mettre à jour l'état de l'utilisateur
             await updateDoc(userRef, {
                 [`etat${slot}`]: 'emprunt',
-                [`tabEtat${slot}`]: [...documentData.slice(0, 5), currentDate, 1] // Garder les mêmes données mais changer la date
+                [`tabEtat${slot}`]: [...documentData.slice(0, 5), currentDate, documentData[6]] // Garder les données, mettre à jour date et exemplaires
             });
 
             // 2. Mettre à jour le array reservations
@@ -188,8 +189,50 @@ export class ReservationService {
                 });
             }
 
-            console.log(`✅ Réservation validée pour ${userEmail}, slot ${slot}`);
 
+            // Send notification with 3-day warning
+            const dueDate = new Date();
+            dueDate.setDate(dueDate.getDate() + 3);
+
+            await notificationService.sendLoanValidated(
+                userEmail,
+                bookId,
+                bookName,
+                dueDate,
+                "Admin"
+            );
+
+            // Update librarian notification to COMPLETED
+            const notifId = await notificationService.findLibrarianNotification(userEmail, bookId);
+            if (notifId) {
+                await notificationService.updateReservationStatus(notifId, 'completed', true);
+            }
+
+            // Sync with global collections: Remove from Reservations and Add to Emprunts
+            try {
+                // 1. Remove from global Reservations
+                const globalResRef = collection(db, 'Reservations');
+                const qRes = query(globalResRef, where('userId', '==', userEmail), where('livreId', '==', bookId));
+                const resSnap = await getDocs(qRes);
+                const deletePromises = resSnap.docs.map(doc => deleteDoc(doc.ref));
+                await Promise.all(deletePromises);
+
+                // 2. Add to global Emprunts
+                const globalLoansRef = collection(db, 'Emprunts');
+                await addDoc(globalLoansRef, {
+                    userId: userEmail,
+                    livreId: bookId,
+                    nomLivre: bookName,
+                    startDate: Timestamp.now(),
+                    endDate: Timestamp.fromDate(dueDate),
+                    status: 'emprunt'
+                });
+                console.log(`✅ Collections globales synchronisées pour l'emprunt de ${userEmail}`);
+            } catch (syncError) {
+                console.warn('⚠️ Erreur synchronisation collections globales (emprunt):', syncError);
+            }
+
+            console.log(`✅ Réservation validée pour ${userEmail}, slot ${slot}`);
         } catch (error) {
             console.error('Erreur validation:', error);
             throw error;
@@ -212,7 +255,7 @@ export class ReservationService {
                 slotData.document.category,     // category
                 slotData.document.imageUrl,     // imageUrl
                 slotData.document.collection,   // collectionName
-                slotData.document.reservationDate, // original reservation date
+                slotData.document.reservationDate, // original reservation date (or previous date)
                 slotData.document.exemplaires   // exemplaires count
             ]
         );
@@ -283,6 +326,88 @@ export class ReservationService {
 
         } catch (error) {
             console.error('Erreur rejet:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * APPROUVER une réservation (change de 'reserv' à 'valide')
+     * Signifie que le livre est mis de côté et prêt à être retiré.
+     */
+    async approveReservation(
+        user: ProcessedUserReservation,
+        slot: number
+    ): Promise<void> {
+        const slotData = user.reservationSlots.find(s => s.slotNumber === slot);
+        if (!slotData?.document) throw new Error(`Slot ${slot} vide`);
+
+        const documentData = [
+            slotData.document.id,
+            slotData.document.name,
+            slotData.document.category,
+            slotData.document.imageUrl,
+            slotData.document.collection,
+            slotData.document.reservationDate,
+            slotData.document.exemplaires
+        ];
+
+        try {
+            const userRef = doc(this.userCollection, user.email);
+
+            // 1. Mettre à jour l'état de l'utilisateur vers 'valide'
+            await updateDoc(userRef, {
+                [`etat${slot}`]: 'valide',
+                [`tabEtat${slot}`]: documentData
+            });
+
+            // 2. Notification (Optionnel : notifier que la demande est validée et le livre est mis de coté)
+            const approvalNotification = {
+                id: `notif_ready_${Date.now()}`,
+                type: 'reservation_ready',
+                title: 'Réservation validée',
+                message: `Le livre "${slotData.document.name}" a été mis de côté. Vous pouvez passer le récupérer.`,
+                date: Timestamp.now(),
+                read: false,
+                bookId: slotData.document.id,
+                bookTitle: slotData.document.name,
+            };
+
+            await updateDoc(userRef, {
+                notifications: arrayUnion(approvalNotification)
+            });
+
+            // Also send a formal reservation update notification via service
+            await notificationService.sendReservationUpdate(
+                user.email,
+                slotData.document.id,
+                slotData.document.name,
+                'approved',
+                'Votre livre est prêt à être récupéré.',
+                'Admin'
+            );
+
+            // Update librarian notification to READY_FOR_PICKUP (still counts as pending in bell)
+            const notifId = await notificationService.findLibrarianNotification(user.email, slotData.document.id);
+            if (notifId) {
+                await notificationService.updateReservationStatus(notifId, 'ready_for_pickup', false);
+            }
+
+            // Sync with global Reservations collection
+            try {
+                const globalResRef = collection(db, 'Reservations');
+                const q = query(globalResRef, where('userId', '==', user.email), where('livreId', '==', slotData.document.id));
+                const querySnapshot = await getDocs(q);
+                const updatePromises = querySnapshot.docs.map(d => updateDoc(d.ref, { status: 'valide' }));
+                await Promise.all(updatePromises);
+                console.log(`✅ Statut de réservation mis à jour dans la collection globale pour ${user.email}`);
+            } catch (syncError) {
+                console.warn('⚠️ Erreur synchronisation collection Reservations:', syncError);
+            }
+
+            console.log(`✅ Réservation approuvée (valide) pour ${user.email}, slot ${slot}`);
+
+        } catch (error) {
+            console.error('Erreur approbation:', error);
             throw error;
         }
     }

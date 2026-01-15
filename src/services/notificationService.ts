@@ -37,6 +37,7 @@ export interface ReservationNotification extends BaseNotification {
     userEmail: string;
     processed?: boolean;
     decision?: 'approved' | 'rejected';
+    status?: 'pending' | 'ready_for_pickup' | 'completed' | 'rejected';
     processedBy?: string;
     processedAt?: any;
     reason?: string;
@@ -103,7 +104,7 @@ class NotificationService {
     ): Promise<string> {
         try {
             const notificationCollection = collection(db, this.librarianNotificationCollection);
-            
+
             const notificationData = {
                 userId: 'librarians', // Special ID for all librarians
                 userName: userName,
@@ -129,7 +130,7 @@ class NotificationService {
                 ...notificationData,
                 timestamp: Timestamp.now()
             });
-            
+
             console.log(`📚 Notification de réservation créée: ${docRef.id}`);
             return docRef.id;
         } catch (error) {
@@ -153,8 +154,8 @@ class NotificationService {
             const notificationId = await this.addUserNotification({
                 userId,
                 type: 'reservation_update',
-                title: status === 'approved' 
-                    ? '🎉 Réservation approuvée' 
+                title: status === 'approved'
+                    ? '🎉 Réservation approuvée'
                     : '❌ Réservation refusée',
                 message: status === 'approved'
                     ? `Votre réservation pour "${bookTitle}" a été approuvée${librarianName ? ` par ${librarianName}` : ''}.`
@@ -168,7 +169,7 @@ class NotificationService {
                     updateDate: new Date().toISOString()
                 }
             });
-            
+
             return notificationId;
         } catch (error) {
             console.error("❌ Erreur lors de l'envoi de la mise à jour de réservation:", error);
@@ -177,10 +178,97 @@ class NotificationService {
     }
 
     /**
+     * Envoie une notification de validation d'emprunt
+     */
+    async sendLoanValidated(
+        userId: string,
+        bookId: string,
+        bookTitle: string,
+        dueDate: Date,
+        librarianName: string = 'Admin'
+    ): Promise<string> {
+        try {
+            return await this.addUserNotification({
+                userId,
+                type: 'success',
+                title: 'Emprunt validé',
+                message: `Votre emprunt pour "${bookTitle}" a été validé par ${librarianName}. À rendre avant le ${dueDate.toLocaleDateString()}.`,
+                data: {
+                    bookId,
+                    bookTitle,
+                    dueDate: dueDate.toISOString(),
+                    librarianName
+                }
+            });
+        } catch (error) {
+            console.error("❌ Erreur lors de l'envoi de la validation d'emprunt:", error);
+            throw error;
+        }
+    }
+
+    /**
+     * Envoie une notification de pénalité pour retard
+     */
+    async sendPenaltyNotification(
+        userId: string,
+        bookId: string,
+        bookTitle: string,
+        daysOverdue: number,
+        amount: number
+    ): Promise<string> {
+        try {
+            return await this.addUserNotification({
+                userId,
+                type: 'warning',
+                title: '⚠️ Retard de restitution',
+                message: `Vous avez ${daysOverdue} jours de retard pour "${bookTitle}". Pénalité actuelle : ${amount} FCFA.`,
+                data: {
+                    bookId,
+                    bookTitle,
+                    daysOverdue,
+                    amount,
+                    date: new Date().toISOString()
+                }
+            });
+        } catch (error) {
+            console.error("❌ Erreur lors de l'envoi de la notification de pénalité:", error);
+            throw error;
+        }
+    }
+
+    /**
+     * Envoie une notification de retour de livre
+     */
+    async sendLoanReturned(
+        userId: string,
+        bookId: string,
+        bookTitle: string,
+        librarianName: string = 'Admin'
+    ): Promise<string> {
+        try {
+            return await this.addUserNotification({
+                userId,
+                type: 'info',
+                title: '📚 Livre rendu',
+                message: `Le livre "${bookTitle}" a été rendu avec succès. Merci !`,
+                data: {
+                    bookId,
+                    bookTitle,
+                    returnDate: new Date().toISOString(),
+                    processedBy: librarianName
+                }
+            });
+        } catch (error) {
+            console.error("❌ Erreur lors de l'envoi de la notification de retour:", error);
+            throw error;
+        }
+    }
+
+    /**
      * Écoute les nouvelles notifications pour un utilisateur (temps réel)
      */
     subscribeToUserNotifications(
-        userId: string, 
+        userId: string,
         callback: (notifications: BaseNotification[]) => void
     ) {
         const q = query(
@@ -199,13 +287,10 @@ class NotificationService {
         });
     }
 
-    /**
-     * Écoute les nouvelles demandes de réservation (pour les bibliothécaires)
-     */
     subscribeToReservationRequests(callback: (notifications: ReservationNotification[]) => void) {
+        // Subscribe to librarian notifications
         const q = query(
             collection(db, this.librarianNotificationCollection),
-            where('type', '==', 'reservation'),
             orderBy('timestamp', 'desc'),
             limit(50)
         );
@@ -216,19 +301,27 @@ class NotificationService {
                 return {
                     id: doc.id,
                     userId: data.userId || 'librarians',
-                    userName: data.userName || data.data?.userName || '',
-                    userEmail: data.userEmail || data.data?.userEmail || '',
-                    type: data.type as 'reservation',
-                    title: data.title || '',
-                    message: data.message || '',
+                    userName: data.userName || data.data?.userName || data.nomEtudiant || 'Étudiant',
+                    userEmail: data.userEmail || data.data?.userEmail || data.emailEtudiant || '',
+                    type: 'reservation',
+                    title: data.title || '📚 Demande de réservation',
+                    message: data.message || `${data.userName || data.nomEtudiant || 'Un étudiant'} souhaite réserver un livre`,
                     read: data.read || false,
                     timestamp: data.timestamp,
-                    processed: data.processed || false,
+                    processed: data.processed || (data.status && data.status !== 'pending' && data.status !== 'reserv'),
+                    status: data.status || (data.processed ? 'completed' : 'pending'),
                     decision: data.decision,
                     processedBy: data.processedBy,
                     processedAt: data.processedAt,
                     reason: data.reason,
-                    data: data.data || {}
+                    data: data.data || {
+                        bookId: data.bookId || data.livreId || '',
+                        bookTitle: data.bookTitle || data.nomLivre || 'Livre',
+                        userId: data.userId || '',
+                        userEmail: data.userEmail || data.emailEtudiant || '',
+                        userName: data.userName || data.nomEtudiant || '',
+                        requestDate: data.timestamp ? (typeof data.timestamp.toDate === 'function' ? data.timestamp.toDate().toISOString() : new Date(data.timestamp).toISOString()) : new Date().toISOString()
+                    }
                 } as ReservationNotification;
             });
             callback(notifications);
@@ -247,13 +340,13 @@ class NotificationService {
         try {
             const notifRef = doc(db, this.librarianNotificationCollection, notificationId);
             const notificationSnap = await getDoc(notifRef);
-            
+
             if (!notificationSnap.exists()) {
                 throw new Error('Notification non trouvée');
             }
 
             const notification = notificationSnap.data();
-            
+
             // Marquer comme traitée
             await updateDoc(notifRef, {
                 processed: true,
@@ -289,7 +382,7 @@ class NotificationService {
     async markAsRead(notificationId: string, collectionName: string = this.collectionName): Promise<void> {
         try {
             const notifRef = doc(db, collectionName, notificationId);
-            await updateDoc(notifRef, { 
+            await updateDoc(notifRef, {
                 read: true,
                 readAt: Timestamp.now()
             });
@@ -309,12 +402,12 @@ class NotificationService {
                 where('read', '==', false)
             );
             const querySnapshot = await getDocs(q);
-            
+
             if (querySnapshot.empty) return;
 
             const batch = writeBatch(db);
             querySnapshot.forEach(doc => {
-                batch.update(doc.ref, { 
+                batch.update(doc.ref, {
                     read: true,
                     readAt: Timestamp.now()
                 });
@@ -324,7 +417,7 @@ class NotificationService {
             console.error("❌ Erreur lors de la mise à jour de toutes les notifications:", error);
         }
     }
-    
+
     /**
      * Récupère le nombre de notifications non lues
      */
@@ -386,9 +479,9 @@ class NotificationService {
                 limit(count)
             );
             const querySnapshot = await getDocs(q);
-            return querySnapshot.docs.map(doc => ({ 
-                id: doc.id, 
-                ...doc.data() 
+            return querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
             })) as BaseNotification[];
         } catch (error) {
             console.error("❌ Erreur lors de la récupération des notifications:", error);
@@ -478,7 +571,7 @@ class NotificationService {
      * Helper method to get pending reservations from a list
      */
     getPendingReservationsFromList(notifications: ReservationNotification[]): ReservationNotification[] {
-        return notifications.filter(n => 
+        return notifications.filter(n =>
             !n.read && (n.processed === undefined || n.processed === false)
         );
     }
@@ -507,6 +600,49 @@ class NotificationService {
             message,
             link
         });
+    }
+
+    /**
+     * Trouve une notification de bibliothécaire par utilisateur et livre
+     */
+    async findLibrarianNotification(userId: string, bookId: string): Promise<string | null> {
+        try {
+            const q = query(
+                collection(db, this.librarianNotificationCollection),
+                where('data.userId', '==', userId),
+                where('data.bookId', '==', bookId),
+                where('processed', '==', false),
+                limit(1)
+            );
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                return querySnapshot.docs[0].id;
+            }
+            return null;
+        } catch (error) {
+            console.error("❌ Erreur lors de la recherche de la notification:", error);
+            return null;
+        }
+    }
+
+    /**
+     * Met à jour le statut d'une notification de réservation
+     */
+    async updateReservationStatus(
+        notificationId: string,
+        status: ReservationNotification['status'],
+        processed: boolean = false
+    ): Promise<void> {
+        try {
+            const notifRef = doc(db, this.librarianNotificationCollection, notificationId);
+            await updateDoc(notifRef, {
+                status,
+                processed,
+                processedAt: Timestamp.now()
+            });
+        } catch (error) {
+            console.error("❌ Erreur lors de la mise à jour du statut de la notification:", error);
+        }
     }
 }
 

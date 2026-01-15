@@ -20,7 +20,7 @@ const getLatestReservationDate = (user: ProcessedUserReservation): number => {
   }, 0);
 };
 
-export const useReservations = () => {
+export const useReservations = (statusFilter: string = 'reserv') => {
   const [reservations, setReservations] = useState<ProcessedUserReservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingItem, setProcessingItem] = useState<string | null>(null);
@@ -33,12 +33,12 @@ export const useReservations = () => {
     try {
       setLoading(true);
       const [activeReservations, maxLoansConfig] = await Promise.all([
-        reservationService.getActiveReservations(),
+        reservationService.getActiveReservations(statusFilter),
         reservationService.getMaxLoans()
       ]);
-      
+
       // --- MODIFICATION TÂCHE 9 (Tri par date descendante) ---
-      const sorted = [...activeReservations].sort((a, b) => 
+      const sorted = [...activeReservations].sort((a, b) =>
         getLatestReservationDate(b) - getLatestReservationDate(a)
       );
 
@@ -57,7 +57,7 @@ export const useReservations = () => {
   }, []);
 
   const validateReservation = useCallback(async (
-    user: ProcessedUserReservation, 
+    user: ProcessedUserReservation,
     slot: number,
     t: (key: string) => string
   ) => {
@@ -65,10 +65,10 @@ export const useReservations = () => {
     setProcessingItem(processingKey);
     try {
       await reservationService.validateReservationForProcessedUser(user, slot);
-      
+
       // --- CORRECTION TÂCHE 6 (Traduction) ---
       showNotification('success', t('components:reservations.loan_success_message') || 'Emprunt enregistré avec succès.');
-      
+
       await loadReservations();
     } catch (error) {
       showNotification('error', t('components:reservations.validation_error') || 'Erreur lors de la validation.');
@@ -77,10 +77,29 @@ export const useReservations = () => {
     }
   }, [loadReservations, showNotification]);
 
-  useEffect(() => { loadReservations(); }, [loadReservations]);
+  const approveReservation = useCallback(async (
+    user: ProcessedUserReservation,
+    slot: number,
+    t: (key: string) => string
+  ) => {
+    const processingKey = `${user.email}-${slot}`;
+    setProcessingItem(processingKey);
+    try {
+      await reservationService.approveReservation(user, slot);
+      showNotification('success', t('components:reservations.approved_message') || 'Réservation approuvée.');
+      await loadReservations();
+    } catch (error) {
+      console.error(error);
+      showNotification('error', t('components:reservations.approval_error') || 'Erreur lors de l\'approbation.');
+    } finally {
+      setProcessingItem(null);
+    }
+  }, [loadReservations, showNotification]);
+
+  useEffect(() => { loadReservations(); }, [loadReservations, statusFilter]);
 
   return {
     reservations, loading, processingItem, notification,
-    maxLoans, validateReservation, loadReservations, showNotification
+    maxLoans, validateReservation, approveReservation, loadReservations, showNotification
   };
 };

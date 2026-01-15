@@ -21,30 +21,31 @@
   "delete": "Delete",
   "edit_book": "Edit Book",
   "save": "Save",
-  "cancel": "Cancel"
-  ,
-"profile_section": {
-  "click_or_drag_image": "Cliquez ou glissez-déposez une image",
-  "supported_formats": "Formats supportés : JPG, PNG, GIF (max 5Mo)",
-  "status": {
-    "info_unknown": "Informations non renseignées"
+  "cancel": "Cancel",
+  "loading": "Loading...",
+  "pending": "pending",
+  "profile_section": {
+    "click_or_drag_image": "Cliquez ou glissez-déposez une image",
+    "supported_formats": "Formats supportés : JPG, PNG, GIF (max 5Mo)",
+    "status": {
+      "info_unknown": "Informations non renseignées"
+    }
+  },
+  "statistics": {
+    "member_days": "Jours depuis l'inscription",
+    "days_since_login": "Jours depuis la dernière connexion",
+    "managed_documents": "Documents gérés",
+    "total_sessions": "Nombre total de sessions"
+  },
+  "profile_quick_actions": {
+    "browse_books": "Parcourir les livres",
+    "check_loans": "Vérifier mes emprunts",
+    "view_reservations": "Voir mes réservations"
+  },
+  "profile_account_statistics": {
+    "today": "Aujourd'hui",
+    "last_login": "Dernière connexion",
+    "profile_documents": "Documents du profil",
+    "page_sessions": "Sessions sur la page"
   }
-},
-"statistics": {
-  "member_days": "Jours depuis l'inscription",
-  "days_since_login": "Jours depuis la dernière connexion",
-  "managed_documents": "Documents gérés",
-  "total_sessions": "Nombre total de sessions"
-},
-"profile_quick_actions": {
-  "browse_books": "Parcourir les livres",
-  "check_loans": "Vérifier mes emprunts",
-  "view_reservations": "Voir mes réservations"
-},
-"profile_account_statistics": {
-  "today": "Aujourd'hui",
-  "last_login": "Dernière connexion",
-  "profile_documents": "Documents du profil",
-  "page_sessions": "Sessions sur la page"
-}
 }
