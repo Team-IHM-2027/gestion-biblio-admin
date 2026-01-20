@@ -199,7 +199,7 @@ export class ReservationService {
                 bookId,
                 bookName,
                 dueDate,
-                "Admin"
+                "Bibliothécaire"
             );
 
             // Update librarian notification to COMPLETED
@@ -383,7 +383,7 @@ export class ReservationService {
                 slotData.document.name,
                 'approved',
                 'Votre livre est prêt à être récupéré.',
-                'Admin'
+                'Bibliothécaire'
             );
 
             // Update librarian notification to READY_FOR_PICKUP (still counts as pending in bell)

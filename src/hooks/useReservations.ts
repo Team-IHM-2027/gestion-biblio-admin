@@ -20,7 +20,7 @@ const getLatestReservationDate = (user: ProcessedUserReservation): number => {
   }, 0);
 };
 
-export const useReservations = (statusFilter: string = 'reserv') => {
+export const useReservations = (statusFilter: string = 'reserv') => {  // Make sure it's exported
   const [reservations, setReservations] = useState<ProcessedUserReservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingItem, setProcessingItem] = useState<string | null>(null);
@@ -49,7 +49,7 @@ export const useReservations = (statusFilter: string = 'reserv') => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [statusFilter]);  // Added statusFilter to dependencies
 
   const showNotification = useCallback((type: 'success' | 'error', message: string) => {
     setNotification({ visible: true, type, message });
@@ -96,10 +96,22 @@ export const useReservations = (statusFilter: string = 'reserv') => {
     }
   }, [loadReservations, showNotification]);
 
-  useEffect(() => { loadReservations(); }, [loadReservations, statusFilter]);
+  useEffect(() => { 
+    loadReservations(); 
+  }, [loadReservations, statusFilter]);  // Added statusFilter to dependencies
 
   return {
-    reservations, loading, processingItem, notification,
-    maxLoans, validateReservation, approveReservation, loadReservations, showNotification
+    reservations, 
+    loading, 
+    processingItem, 
+    notification,
+    maxLoans, 
+    validateReservation, 
+    approveReservation, 
+    loadReservations, 
+    showNotification
   };
 };
+
+// Make sure there's a default export as well if needed
+// export default useReservations;

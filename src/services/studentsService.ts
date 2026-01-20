@@ -13,6 +13,8 @@ import {
   startAfter,
   getDoc
 } from 'firebase/firestore';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../config/firebase'; 
 import { db } from '../config/firebase';
 import type { 
   Student, 
@@ -175,13 +177,72 @@ export class StudentsService {
   }
 
   // Mettre à jour le statut d'un étudiant
-  async updateStudentStatus(studentId: string, newStatus: 'ras' | 'bloc'): Promise<void> {
+  async updateStudentStatus(
+    studentId: string,
+    newStatus: 'ras' | 'bloc',
+    librarianMessage?: string
+  ): Promise<void> {
     try {
       const studentRef = doc(db, this.collection, studentId);
+      
+      // Get student data to get email and name
+      const studentSnap = await getDoc(studentRef);
+      if (!studentSnap.exists()) {
+        throw new Error('Étudiant non trouvé');
+      }
+      
+      const studentData = studentSnap.data();
+      const studentEmail = studentId; // email is used as ID
+      const studentName = studentData.name || 'Étudiant';
+      
+      // Update status in Firestore
       await updateDoc(studentRef, {
         etat: newStatus,
-        updated_at: new Date()
+        updated_at: new Date(),
+        blockedAt: newStatus === 'bloc' ? new Date() : null,
+        blockedReason: newStatus === 'bloc' ? librarianMessage || '' : null
       });
+      
+      // Send email notification if blocking
+      if (newStatus === 'bloc') {
+        try {
+          const sendBlockingNotification = httpsCallable(
+            functions,
+            'sendBlockingNotification'
+          );
+          
+          await sendBlockingNotification({
+            studentEmail,
+            studentName,
+            librarianMessage: librarianMessage || 'Raison non spécifiée'
+          });
+          
+          console.log(`📧 Email de blocage envoyé à ${studentEmail}`);
+        } catch (emailError) {
+          console.error('Erreur lors de l\'envoi de l\'email de blocage:', emailError);
+          // Don't throw - the status was updated successfully
+        }
+      }
+      
+      // Send email notification if unblocking
+      if (newStatus === 'ras' && studentData.etat === 'bloc') {
+        try {
+          const sendUnblockingNotification = httpsCallable(
+            functions,
+            'sendUnblockingNotification'
+          );
+          
+          await sendUnblockingNotification({
+            studentEmail,
+            studentName
+          });
+          
+          console.log(`📧 Email de déblocage envoyé à ${studentEmail}`);
+        } catch (emailError) {
+          console.error('Erreur lors de l\'envoi de l\'email de déblocage:', emailError);
+          // Don't throw - the status was updated successfully
+        }
+      }
     } catch (error) {
       console.error('Erreur lors de la mise à jour du statut:', error);
       throw error;

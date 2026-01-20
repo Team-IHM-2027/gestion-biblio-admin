@@ -39,7 +39,7 @@ interface UseStudentsReturn {
   isSelected: (studentId: string) => boolean;
   
   // Actions
-  updateStudentStatus: (studentId: string, newStatus: 'ras' | 'bloc') => Promise<void>;
+  updateStudentStatus: (studentId: string, newStatus: 'ras' | 'bloc', reason?: string) => Promise<void>;
   bulkUpdateStatus: (studentIds: string[], newStatus: 'ras' | 'bloc') => Promise<void>;
   deleteStudent: (studentId: string) => Promise<void>;
   bulkDeleteStudents: (studentIds: string[]) => Promise<void>;
@@ -194,9 +194,9 @@ export const useStudents = (): UseStudentsReturn => {
   }, [selectedStudents]);
 
   // Student actions
-  const updateStudentStatus = useCallback(async (studentId: string, newStatus: 'ras' | 'bloc') => {
+  const updateStudentStatus = useCallback(async (studentId: string, newStatus: 'ras' | 'bloc', reason?: string) => {
     try {
-      await studentsService.updateStudentStatus(studentId, newStatus);
+      await studentsService.updateStudentStatus(studentId, newStatus, reason);
       await loadStats(); // Refresh stats
     } catch (error) {
       console.error('Erreur lors de la mise à jour du statut:', error);

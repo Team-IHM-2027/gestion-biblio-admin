@@ -199,7 +199,7 @@ export class LoanService {
           userEmail, // Using email as ID
           documentId,
           bookTitle,
-          "Admin"
+          "Bibliothécaire"
         );
       } catch (notifyError) {
         console.error("Failed to send return notification:", notifyError);
