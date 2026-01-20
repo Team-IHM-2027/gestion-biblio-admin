@@ -69,7 +69,7 @@ export class AssistantService {
     return this.generateDefaultResponse(config, query);
   }
 
-  getQuickSuggestions(orgName: string = 'OrgSettings') {
+  getQuickSuggestions(_orgName: string = 'OrgSettings') {
     // These can be dynamic based on configuration
     return [
       { text: "📅 Horaires", query: "Quels sont les horaires d'ouverture ?" },

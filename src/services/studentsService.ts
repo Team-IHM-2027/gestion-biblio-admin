@@ -13,8 +13,8 @@ import {
   startAfter,
   getDoc
 } from 'firebase/firestore';
-import { httpsCallable } from 'firebase/functions';
-import { functions } from '../config/firebase';
+// import { httpsCallable } from 'firebase/functions';
+// import { functions } from '../config/firebase';
 import { db } from '../config/firebase';
 import type {
   Student,
@@ -193,7 +193,8 @@ export class StudentsService {
       }
 
       const studentData = studentSnap.data();
-      const prevEtat = studentData.etat;
+      // @ts-ignore
+      const _prevEtat = studentData.etat;
 
       // Update status and store reason + timestamp for the Cloud Function to use
       await updateDoc(studentRef, {

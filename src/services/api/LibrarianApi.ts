@@ -1,6 +1,6 @@
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../config/firebase';
-import type { OrgSettings, Contact, OpeningHours, Theme } from '../../types/orgSettings';
+import type { OrgSettings, OpeningHours } from '../../types/orgSettings';
 import { defaultOrgSettings } from '../../constants/defaultOrgSettings';
 
 export class LibrarianApi {

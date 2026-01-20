@@ -1107,7 +1107,7 @@ class NotificationService {
                             const tabData = userData[tabKey];
                             const bookId = tabData[0];
                             const bookName = tabData[1] || 'Livre';
-                            const reservationDate = tabData[5];
+                            //const _reservationDate = tabData[5];
                             
                             // Check if notification already exists for this reservation
                             const existingNotif = await this.findLibrarianNotification(userDoc.id, bookId);

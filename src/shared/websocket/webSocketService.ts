@@ -53,7 +53,6 @@ class WebSocketService {
   private listeners: Map<string, Function[]> = new Map();
   private notificationListeners: Function[] = [];
   private isConnected = false;
-  private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
 
   constructor() {
@@ -82,7 +81,6 @@ class WebSocketService {
 
     this.socket.on('connect', () => {
       this.isConnected = true;
-      this.reconnectAttempts = 0;
     });
 
     this.socket.on('disconnect', (reason) => {

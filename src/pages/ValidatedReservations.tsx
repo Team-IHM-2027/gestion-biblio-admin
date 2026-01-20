@@ -1,6 +1,6 @@
 // pages/ValidatedReservations.tsx
 import React from 'react';
-import { FaBook, FaCalendarCheck, FaCheckCircle, FaClipboardCheck, FaClock } from 'react-icons/fa';
+import { FaCalendarCheck, FaCheckCircle, FaClipboardCheck } from 'react-icons/fa';
 import { useReservations } from '../hooks/useReservations';
 import { usePagination } from '../hooks/useLoans';
 import useI18n from '../hooks/useI18n';
@@ -21,7 +21,6 @@ const ValidatedReservations: React.FC = () => {
         loading,
         processingItem,
         notification,
-        maxLoans,
         validateReservation
     } = useReservations('valide');
 
