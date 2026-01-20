@@ -9,7 +9,12 @@ export const ArchiveTableRow = ({ item, index, returnedText }: ArchiveTableRowPr
         <span className="text-xs text-gray-500">{index}</span>
       </div>
     </td>
-    <td className="p-3">{item.nomDoc}</td>
+    <td className="p-3 font-medium text-gray-900">
+  {item.nomDoc && item.nomDoc.trim() !== ''
+    ? item.nomDoc
+    : 'Document indisponible'}
+</td>
+
     <td className="p-3">
       <FormattedDate date={item.heure} format="datetime" />
     </td>

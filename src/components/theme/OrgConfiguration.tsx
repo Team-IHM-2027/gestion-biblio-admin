@@ -1,5 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useConfig } from './ConfigProvider.tsx';
+import { Modal } from '../common/Modal';
+import { useSystemAlerts } from '../../hooks/useSystemAlerts';
+import type { SystemAlert } from '../../hooks/useSystemAlerts';
 
 // Helper function to parse opening hours from JSON string
 const parseOpeningHours = (hoursString: string) => {
@@ -13,6 +16,36 @@ const parseOpeningHours = (hoursString: string) => {
 
 const OrgConfiguration: React.FC = () => {
 	const { config, loading } = useConfig();
+	const { alerts } = useSystemAlerts();
+	const [isAlertOpen, setIsAlertOpen] = useState(false);
+	const [activeAlert, setActiveAlert] = useState<SystemAlert | null>(null);
+
+	useEffect(() => {
+		if (!alerts.length) return;
+		const latest = alerts[0];
+		if (typeof window === 'undefined') return;
+		let lastAck: string | null = null;
+		try {
+			lastAck = window.localStorage.getItem('lastAcknowledgedAlertId');
+		} catch (error) {
+			console.error('Unable to read localStorage for alerts:', error);
+		}
+		if (latest.id && latest.id !== lastAck) {
+			setActiveAlert(latest);
+			setIsAlertOpen(true);
+		}
+	}, [alerts]);
+
+	const handleAlertAck = () => {
+		if (activeAlert?.id && typeof window !== 'undefined') {
+			try {
+				window.localStorage.setItem('lastAcknowledgedAlertId', activeAlert.id);
+			} catch (error) {
+				console.error('Unable to write localStorage for alerts:', error);
+			}
+		}
+		setIsAlertOpen(false);
+	};
 
 	if (loading) {
 		return (
@@ -28,6 +61,23 @@ const OrgConfiguration: React.FC = () => {
 
 	return (
 		<div className="bg-white p-6 rounded-lg shadow-md">
+			<Modal
+				isOpen={isAlertOpen}
+				onClose={handleAlertAck}
+				title={activeAlert?.title || 'Alerte'}
+			>
+				<p className="text-gray-700 mb-6">
+					{activeAlert?.message || 'Une mise a jour vient d\'etre effectuee.'}
+				</p>
+				<div className="flex justify-end">
+					<button
+						onClick={handleAlertAck}
+						className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+					>
+						OK
+					</button>
+				</div>
+			</Modal>
 			{/* Debug info - can be removed in production */}
 			<div className="mb-4 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
 				<p>Current time: {new Date().toISOString()}</p>

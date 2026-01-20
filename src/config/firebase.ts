@@ -2,6 +2,8 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
+import { getFunctions } from 'firebase/functions';
+
 
 const firebaseConfig = {
 	apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -20,5 +22,8 @@ export const db = getFirestore(app);
 export const auth = getAuth(app);
 
 
+export const functions = getFunctions(app);
+
 // Export default organization name from environment variables
 export const DEFAULT_ORGANIZATION = import.meta.env.VITE_DEFAULT_ORGANIZATION || 'CampusLibrary';
+

@@ -21,8 +21,8 @@ const Reservations: React.FC = () => {
     processingItem,
     notification,
     maxLoans,
-    validateReservation
-  } = useReservations();
+    approveReservation
+  } = useReservations('reserv');
 
   const {
     currentItems,
@@ -36,7 +36,7 @@ const Reservations: React.FC = () => {
   } = usePagination(reservations, 5);
 
   const handleValidateReservation = async (user: ProcessedUserReservation, slot: number) => {
-    await validateReservation(user, slot, t);
+    await approveReservation(user, slot, t);
   };
 
   // Calculer le total des réservations actives
@@ -53,10 +53,10 @@ const Reservations: React.FC = () => {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                {t('components:reservations.title')}
+                {t('components:reservations.title') || 'Demandes de Réservation'}
               </h1>
               <p className="text-sm text-gray-600">
-                {reservations.length} {reservations.length === 1 ? 'utilisateur avec réservations' : 'utilisateurs avec réservations'} 
+                {reservations.length} {reservations.length === 1 ? 'utilisateur avec réservations' : 'utilisateurs avec réservations'}
                 • {totalActiveReservations} {totalActiveReservations === 1 ? 'réservation en attente' : 'réservations en attente'}
                 • Max: {maxLoans} par utilisateur
               </p>
@@ -82,8 +82,8 @@ const Reservations: React.FC = () => {
         {loading ? (
           /* Loading State */
           <div className="flex justify-center items-center py-20">
-            <LoadingSpinner 
-              size="lg" 
+            <LoadingSpinner
+              size="lg"
               text={t('components:reservations.loading')}
             />
           </div>
@@ -106,7 +106,7 @@ const Reservations: React.FC = () => {
                 </div>
                 <div className="ml-3">
                   <p className="text-sm text-blue-700">
-                    {t('components:reservations.validation_info')}
+                    {t('components:reservations.validation_info') || 'Validez les demandes pour les préparer au retrait.'}
                   </p>
                 </div>
               </div>

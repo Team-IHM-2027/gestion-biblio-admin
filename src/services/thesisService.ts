@@ -137,3 +137,16 @@ export const deleteThesis = async (thesisId: string): Promise<void> => {
 	const thesisDocRef = doc(db, 'BiblioThesis', thesisId);
 	await deleteDoc(thesisDocRef);
 };
+/**
+ * Fetches ALL theses from the database (not filtered by department)
+ */
+export const fetchAllTheses = async (): Promise<Thesis[]> => {
+	try {
+		const querySnapshot = await getDocs(thesisCollectionRef);
+		const theses = querySnapshot.docs.map(mapDocToThesis);
+		return theses;
+	} catch (error) {
+		console.error('Error fetching all theses:', error);
+		throw new Error('Failed to fetch theses.');
+	}
+};

@@ -33,7 +33,14 @@ const Login: React.FC = () => {
 			});
 		} catch (err: any) {
 			setError(err.message || 'Une erreur est survenue.');
-		} finally {
+		}
+		try {
+	await login(email, password);
+	navigate('/dashboard');
+} catch (error: any) {
+	setError(error.message);
+}
+ finally {
 			setIsLoading(false);
 		}
 	};

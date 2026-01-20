@@ -1,5 +1,5 @@
-// types/loans.ts
 export interface DocumentLoan {
+  id: string;
   name: string;
   category: string;
   imageUrl: string;

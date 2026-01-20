@@ -5,8 +5,8 @@ import type { DocumentLoanItemProps } from '../../types';
 import useI18n from '../../hooks/useI18n';
 
 // Type Guard pour vérifier si l'objet ressemble à un Timestamp de Firestore
-const isFirestoreTimestamp = (data: any): data is { seconds: number, nanoseconds: number } => 
-    typeof data === 'object' && data !== null && 'seconds' in data && 'nanoseconds' in data;
+const isFirestoreTimestamp = (data: any): data is { seconds: number, nanoseconds: number } =>
+  typeof data === 'object' && data !== null && 'seconds' in data && 'nanoseconds' in data;
 
 const DocumentLoanItem: React.FC<DocumentLoanItemProps> = ({ document, isProcessing, onReturn }) => {
   const { t } = useI18n();
@@ -18,7 +18,7 @@ const DocumentLoanItem: React.FC<DocumentLoanItemProps> = ({ document, isProcess
       // Si c'est un Timestamp Firestore
       if (isFirestoreTimestamp(date)) {
         jsDate = new Date(date.seconds * 1000);
-      } 
+      }
       // Si c'est déjà un objet Date (Correction: Utilisation d'assertion d'objet pour calmer ts(2358))
       else if (date && typeof date === 'object' && (date as object) instanceof Date) {
         jsDate = date as Date; // Assertion finale du type Date
@@ -32,7 +32,7 @@ const DocumentLoanItem: React.FC<DocumentLoanItemProps> = ({ document, isProcess
       } else {
         return 'Date invalide';
       }
-      
+
       return jsDate.toLocaleString('fr-FR', {
         year: 'numeric',
         month: '2-digit',
@@ -71,40 +71,40 @@ const DocumentLoanItem: React.FC<DocumentLoanItemProps> = ({ document, isProcess
             {document.name}
           </p>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-600">
-            
+
             {/* Date d'emprunt */}
             <span className="flex items-center">
               <FaCalendarAlt className="inline mr-1 text-primary-500" size={10} />
               {t('components:loans.borrowed_on')}:{' '}
               <span className="font-medium ml-1">{formatDate(document.borrowDate).split(',')[0]}</span>
             </span>
-            
+
             {/* Calcul et affichage de la date de retour prévue (14 jours) */}
             {(() => {
               try {
                 const rawDate = document.borrowDate;
                 let borrowDate: Date | null = null;
-                
+
                 // Si c'est un Timestamp Firestore
                 if (isFirestoreTimestamp(rawDate)) {
-                    borrowDate = new Date(rawDate.seconds * 1000);
-                } 
+                  borrowDate = new Date(rawDate.seconds * 1000);
+                }
                 // Si c'est une string
                 else if (typeof rawDate === 'string') {
-                    borrowDate = new Date(rawDate);
-                } 
+                  borrowDate = new Date(rawDate);
+                }
                 // Correction Finale: Utilisation d'assertion de type pour résoudre ts(2358)
                 else if (rawDate && typeof rawDate === 'object') {
-                    if ((rawDate as object) instanceof Date) {
-                        borrowDate = rawDate as Date;
-                    }
+                  if ((rawDate as object) instanceof Date) {
+                    borrowDate = rawDate as Date;
+                  }
                 }
-                
+
                 if (!borrowDate || isNaN(borrowDate.getTime())) return null;
 
                 const dueDate = new Date(borrowDate.getTime());
-                dueDate.setDate(borrowDate.getDate() + 14); // Ajout de 14 jours
-                
+                dueDate.setDate(borrowDate.getDate() + 3); // Ajout de 3 jours (Politique de la bibliothèque)
+
                 const formattedDueDate = dueDate.toLocaleDateString('fr-FR', {
                   year: 'numeric',
                   month: '2-digit',

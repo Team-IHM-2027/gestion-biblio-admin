@@ -3,11 +3,24 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { BiLogOut } from 'react-icons/bi';
 import { FiMoreHorizontal } from 'react-icons/fi';
 import useI18n from '../../hooks/useI18n';
+import { useSystemAlerts } from '../../hooks/useSystemAlerts';
 
 const MobileBottomSidebar: React.FC = () => {
 	const { t } = useI18n();
 	const navigate = useNavigate();
 	const [showMoreMenu, setShowMoreMenu] = useState(false);
+	const { alerts } = useSystemAlerts();
+	const latestAlertId = alerts[0]?.id;
+	const getLastAcknowledgedAlertId = () => {
+		if (typeof window === 'undefined') return null;
+		try {
+			return window.localStorage.getItem('lastAcknowledgedAlertId');
+		} catch (error) {
+			console.error('Unable to read localStorage for alerts:', error);
+			return null;
+		}
+	};
+	const hasPendingAlert = Boolean(latestAlertId && latestAlertId !== getLastAcknowledgedAlertId());
 
 	// Items principaux (4 max pour mobile)
 	const mainItems = [
@@ -119,7 +132,12 @@ const MobileBottomSidebar: React.FC = () => {
 								}`}
 							>
 								{renderIcon(item.icon, "w-6 h-6")}
-								<span className="text-xs mt-1 text-center">{item.label}</span>
+								<span className="text-xs mt-1 text-center relative">
+									{item.label}
+									{item.id === 'settings' && hasPendingAlert && (
+										<span className="absolute -top-1 -right-3 w-2 h-2 bg-red-500 rounded-full" />
+									)}
+								</span>
 							</NavLink>
 						))}
 						

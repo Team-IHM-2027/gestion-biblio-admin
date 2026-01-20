@@ -6,19 +6,23 @@ import './utils/i18n';
 import {SearchProvider} from "./context/SearchContext.tsx";
 import {AuthProvider} from "./context/AuthContext.tsx";
 import { I18nProvider } from './context/I18nContext.tsx';
+import { NotificationProvider } from './context/notificationContext.tsx';
+import LibrarianAlertListener from './components/LibrarianAlertListener.tsx';
 
 function App() {
   return (
-    <AuthProvider>
-      <I18nProvider>
-        <ConfigProvider orgName={DEFAULT_ORGANIZATION}>
-          <SearchProvider>
-            <RouterProvider router={routes} />
-          </SearchProvider>
-        </ConfigProvider>
-      </I18nProvider>
-    </AuthProvider>
-
+    <NotificationProvider>
+      <AuthProvider>
+        <I18nProvider>
+          <ConfigProvider orgName={DEFAULT_ORGANIZATION}>
+            <SearchProvider>
+              <LibrarianAlertListener />
+              <RouterProvider router={routes} />
+            </SearchProvider>
+          </ConfigProvider>
+        </I18nProvider>
+      </AuthProvider>
+    </NotificationProvider>
   );
 }
 

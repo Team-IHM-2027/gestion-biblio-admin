@@ -1,5 +1,5 @@
 // src/routes.tsx
-import {createBrowserRouter, Navigate} from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 import Landing from './pages/Landing.tsx';
 import Dashboard from "./components/layout/Dashboard.tsx";
 import ProtectedRoute from "./components/auth/ProtectedRoute.tsx";
@@ -13,6 +13,7 @@ import OrgConfiguration from "./components/theme/OrgConfiguration.tsx";
 import UnderDevelopment from './pages/UnderDevelopment.tsx';
 import DefaultLayout from "./components/layout/DefaultLayout.tsx";
 import Reservations from './pages/Returns.tsx';
+import ValidatedReservations from './pages/ValidatedReservations.tsx';
 import Archives from './pages/Archives.tsx';
 import Departements from "./pages/Departements.tsx";
 import Catalogue from "./pages/Catalogue.tsx";
@@ -50,59 +51,60 @@ const routes = createBrowserRouter([
 	},
 	{
 		path: "/dashboard",
-		element: <ProtectedRoute/>,
+		element: <ProtectedRoute />,
 		children: [
 			{
-				element: <Dashboard/>,
+				element: <Dashboard />,
 				children: [
-					{ index: true, element: <Overview/>, },
+					{ index: true, element: <Overview />, },
 					{
 						path: "books",
-						element: <DefaultLayout/>,
+						element: <DefaultLayout />,
 						children: [
-							{ index: true, element: <Departements/>, },
+							{ index: true, element: <Departements />, },
 							{
 
 								path: ":departmentName",
-								element: <DefaultLayout/>,
+								element: <DefaultLayout />,
 								children: [
-									{ index: true, element: <Catalogue/> },
-									{ path: ":bookId", element: <BookDetails/> },
-									{ path: "add", element: <AddBook/> }
+									{ index: true, element: <Catalogue /> },
+									{ path: ":bookId", element: <BookDetails /> },
+									{ path: "add", element: <AddBook /> }
 								]
 							}
 						]
 					},
 					{
 						path: "thesis",
-						element: <DefaultLayout/>,
+						element: <DefaultLayout />,
 						children: [
-							{ index: true, element: <ThesisDepartment/> },
+							{ index: true, element: <ThesisDepartment /> },
 							{
 								path: ":departmentName",
-								element: <DefaultLayout/>,
+								element: <DefaultLayout />,
 								children: [
-									{ index: true, element: <ThesisCatalogue/> },
-									{ path: ":thesisId", element: <ThesisDetails/> },
-									{ path: "add", element: <AddThesis/> }
+									{ index: true, element: <ThesisCatalogue /> },
+									{ path: ":thesisId", element: <ThesisDetails /> },
+									{ path: "add", element: <AddThesis /> }
 								]
 							}
 						]
 					},
 					{
 						path: "messages",
-						element: <Chat/>, // Chat est maintenant la page principale
+						element: <Chat />, // Chat est maintenant la page principale
 						children: [
-							{ path: ":conversationId", element: <Chat/> }
+							{ path: ":conversationId", element: <Chat /> }
 						]
 					},
-					{ path: "users", element: <Users/>, },
-					{ path: "loans", element: <Loans/>, },
-					{ path: "reservations", element: <Reservations/>, },
-					{ path: "settings", element: <OrgConfiguration/>, },
-					{ path: "archives", element: <Archives/>, },
-					{ path: "profile", element: <Profile/>, },
-					{ path: "*", element: <UnderDevelopment sectionName="Requested"/>, }
+					{ path: "users", element: <Users />, },
+					{ path: "loans", element: <Loans />, },
+					{ path: "reservations", element: <Reservations />, },
+					{ path: "validated-reservations", element: <ValidatedReservations />, },
+					{ path: "settings", element: <OrgConfiguration />, },
+					{ path: "archives", element: <Archives />, },
+					{ path: "profile", element: <Profile />, },
+					{ path: "*", element: <UnderDevelopment sectionName="Requested" />, }
 				]
 			},
 			{
@@ -123,11 +125,11 @@ const routes = createBrowserRouter([
 			},
 			{
 				path: "archives",
-				element: <Archives/>,
+				element: <Archives />,
 			},
 			{
 				path: "profile",
-				element: <Profile/>,
+				element: <Profile />,
 			},
 			{
 				path: "*",

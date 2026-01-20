@@ -1,6 +1,7 @@
 // services/loanService.ts
-import { collection, doc, updateDoc, arrayUnion, getDocs, getDoc } from 'firebase/firestore';
+import { collection, doc, updateDoc, arrayUnion, getDocs, getDoc, query, where, deleteDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import { notificationService } from './notificationService';
 import type { UserLoan, ProcessedUserLoan, UserLoanSlot } from '../types';
 import { fetchMaximumSimultaneousLoans } from './configService';
 
@@ -22,19 +23,43 @@ export class LoanService {
       const tabKey = `tabEtat${i}`;
 
       const status = userData[etatKey] as 'emprunt' | 'ras';
-      const tabData = userData[tabKey] as [string, string, string, number, string, string];
+      const tabData = userData[tabKey] as any[];
 
       if (status === 'emprunt' && tabData && Array.isArray(tabData) && tabData[0]) {
+        let id, name, category, imageUrl, exemplaires, collection, borrowDate;
+
+        if (typeof tabData[3] === 'number') {
+          // Ancien format: [Name, Category, ImageUrl, Exemplaires, Collection, BorrowDate]
+          // On utilise Name comme ID par défaut
+          id = tabData[0];
+          name = tabData[0];
+          category = tabData[1];
+          imageUrl = tabData[2];
+          exemplaires = Number(tabData[3]);
+          collection = tabData[4];
+          borrowDate = tabData[5];
+        } else {
+          // Nouveau format (ReservationService): [Id, Name, Category, ImageUrl, Collection, BorrowDate, Exemplaires]
+          id = tabData[0];
+          name = tabData[1];
+          category = tabData[2];
+          imageUrl = tabData[3];
+          collection = tabData[4];
+          borrowDate = tabData[5];
+          exemplaires = Number(tabData[6]);
+        }
+
         activeSlots.push({
           slotNumber: i,
           status: 'emprunt',
           document: {
-            name: tabData[0],
-            category: tabData[1],
-            imageUrl: tabData[2],
-            exemplaires: tabData[3],
-            collection: tabData[4],
-            borrowDate: tabData[5]
+            id,
+            name,
+            category,
+            imageUrl,
+            exemplaires,
+            collection,
+            borrowDate
           }
         });
       }
@@ -80,7 +105,7 @@ export class LoanService {
   }
 
   // Obtenir les données d'un document pour un slot donné
-  async getDocumentDataForSlot(userEmail: string, slot: number): Promise<[string, string, string, number, string, string] | null> {
+  async getDocumentDataForSlot(userEmail: string, slot: number): Promise<any[] | null> {
     try {
       const userRef = doc(this.userCollection, userEmail);
       const userSnap = await getDoc(userRef);
@@ -91,7 +116,7 @@ export class LoanService {
       const tabKey = `tabEtat${slot}`;
       const tabData = userData[tabKey];
 
-      return Array.isArray(tabData) ? (tabData as [string, string, string, number, string, string]) : null;
+      return Array.isArray(tabData) ? (tabData as any[]) : null;
     } catch (error) {
       console.error('Erreur lors de la récupération des données du document:', error);
       return null;
@@ -117,15 +142,14 @@ export class LoanService {
     }
   }
 
-  // Retourner un document (version avec ID direct)
   async returnDocument(
     userEmail: string,
     documentSlot: number,
-    documentData: [string, string, string, number, string, string],
+    documentData: any[],
     userName: string
   ): Promise<void> {
     try {
-      const [documentId, , , exemplaires] = documentData;
+      const documentId = documentData[0];
       const collectionName = 'BiblioBooks';
 
       // Accès direct via ID
@@ -136,7 +160,11 @@ export class LoanService {
       if (!docSnap.exists()) throw new Error(`Document ${documentId} introuvable dans la collection ${collectionName}`);
 
       // Mettre à jour le nombre d'exemplaires
-      await updateDoc(docRef, { exemplaire: exemplaires + 1 });
+      // Note: On récupère la valeur actuelle depuis la base de données pour éviter les problèmes de concurrence et de format
+      const currentBookData = docSnap.data();
+      const currentExemplaires = Number(currentBookData.exemplaire || 0);
+
+      await updateDoc(docRef, { exemplaire: currentExemplaires + 1 });
 
       // Ajouter à l'archive
       await this.addToArchive(userName, documentId);
@@ -147,6 +175,36 @@ export class LoanService {
       updateData[`etat${documentSlot}`] = 'ras';
       updateData[`tabEtat${documentSlot}`] = ['', '', '', 0, '', ''];
       await updateDoc(userRef, updateData);
+
+      // Sync with global Emprunts collection
+      try {
+        const globalEmpruntsRef = collection(db, 'Emprunts');
+        const q = query(
+          globalEmpruntsRef,
+          where('userId', '==', userEmail),
+          where('livreId', '==', documentId)
+        );
+        const querySnapshot = await getDocs(q);
+        const deletePromises = querySnapshot.docs.map(doc => deleteDoc(doc.ref));
+        await Promise.all(deletePromises);
+        console.log(`✅ Emprunt synchronisé et supprimé de la collection globale pour ${userEmail}`);
+      } catch (syncError) {
+        console.warn('⚠️ Erreur lors de la synchronisation de la collection Emprunts:', syncError);
+      }
+
+      // Send return notification
+      try {
+        const bookTitle = documentData[1] || 'Livre'; // Try index 1, fallback to 'Livre'
+        await notificationService.sendLoanReturned(
+          userEmail, // Using email as ID
+          documentId,
+          bookTitle,
+          "Bibliothécaire"
+        );
+      } catch (notifyError) {
+        console.error("Failed to send return notification:", notifyError);
+      }
+
     } catch (error) {
       console.error('Erreur lors du retour du document:', error);
       throw error;
@@ -158,13 +216,15 @@ export class LoanService {
     const slotData = user.activeSlots.find(s => s.slotNumber === slot);
     if (!slotData || !slotData.document) throw new Error(`Aucun document emprunté trouvé dans le slot ${slot}`);
 
-    const documentData: [string, string, string, number, string, string] = [
+    // Reconstruction des données au format attendu (Nouveau format)
+    const documentData: any[] = [
+      slotData.document.id,
       slotData.document.name,
       slotData.document.category,
       slotData.document.imageUrl,
-      slotData.document.exemplaires,
       slotData.document.collection,
-      slotData.document.borrowDate
+      slotData.document.borrowDate,
+      slotData.document.exemplaires
     ];
 
     return this.returnDocument(user.email, slot, documentData, user.name);
@@ -227,6 +287,52 @@ export class LoanService {
     } catch (error) {
       console.error('Erreur lors de la recherche de slot libre:', error);
       return null;
+    }
+  }
+
+  // Vérifier les retards et envoyer des notifications de pénalité
+  async checkOverdueLoans(): Promise<void> {
+    try {
+      const users = await this.getActiveLoans();
+      const now = new Date();
+      const threeDaysInMillis = 3 * 24 * 60 * 60 * 1000;
+
+      for (const user of users) {
+        for (const slot of user.activeSlots) {
+          // Clean up date string if needed
+          // Optional check for document just in case
+          if (!slot.document) continue;
+
+          const loanDateStr = slot.document.borrowDate;
+          // Ensure loanDate is valid
+          if (!loanDateStr) continue;
+
+          const loanDate = new Date(loanDateStr);
+          if (isNaN(loanDate.getTime())) continue;
+
+          const timeDiff = now.getTime() - loanDate.getTime();
+
+          if (timeDiff > threeDaysInMillis) {
+            const daysOverdue = Math.floor((timeDiff - threeDaysInMillis) / (24 * 60 * 60 * 1000));
+            // Amount = 100 FCFA * daysOverdue (starting at 1 day)
+            const amount = 100 * (Math.max(1, daysOverdue));
+
+            // TODO: Implement deduplication to prevent spamming (e.g., check last notification date)
+            // For now, we rely on the caller to call this sparingly or on a specific event
+
+            await notificationService.sendPenaltyNotification(
+              user.email,
+              slot.document.id,
+              slot.document.name || 'Livre',
+              Math.max(1, daysOverdue),
+              amount
+            );
+            console.log(`Penalty notification sent to ${user.email} for ${slot.document.name}`);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error checking overdue loans:", error);
     }
   }
 }
