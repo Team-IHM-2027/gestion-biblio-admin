@@ -1,4 +1,4 @@
-import { collection, doc, updateDoc, query, where, getDocs, getDoc, Timestamp, arrayRemove, arrayUnion, addDoc, deleteDoc } from 'firebase/firestore';
+import { collection, doc, updateDoc, query, where, getDocs, getDoc, Timestamp, arrayUnion, addDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { notificationService } from './notificationService';
 import { fetchMaximumSimultaneousLoans } from './configService';
@@ -6,7 +6,7 @@ import type { ProcessedUserReservation, ReservationSlot, UserReservation } from 
 
 export class ReservationService {
     private readonly userCollection = collection(db, 'BiblioUser');
-    private readonly booksCollection = collection(db, 'BiblioBooks');
+    //private readonly booksCollection = collection(db, 'BiblioBooks');
 
     public ensureStringDate(date: Timestamp | string | Date | { seconds: number; nanoseconds: number } | null | undefined): string {
         if (!date) return new Date().toISOString();
@@ -124,7 +124,7 @@ export class ReservationService {
         documentData: [string, string, string, string, string, string, number] // Adjusted for your structure
     ): Promise<void> {
         try {
-            const [bookId, bookName, category, imageUrl, collectionName, reservationDate, exemplaire] = documentData;
+            const [bookId, bookName, , , collectionName] = documentData;  // Use commas to skip unused variables
             const currentDate = new Date().toISOString();
 
             const userRef = doc(this.userCollection, userEmail);
@@ -180,7 +180,7 @@ export class ReservationService {
             const bookSnap = await getDoc(bookRef);
 
             if (bookSnap.exists()) {
-                const bookData = bookSnap.data();
+                bookSnap.data();
                 // Vous pouvez ajouter un champ de statut si vous voulez
                 await updateDoc(bookRef, {
                     // Optionnel: marquer comme emprunté sans changer le compteur

@@ -24,8 +24,8 @@ export const useSystemAlerts = () => {
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const next = snapshot.docs.map((doc) => ({
-                id: doc.id,
-                ...(doc.data() as SystemAlert)
+                ...(doc.data() as SystemAlert),
+                id: doc.id
             }));
 
             next.sort((a, b) => {

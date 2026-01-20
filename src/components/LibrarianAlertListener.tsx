@@ -8,9 +8,7 @@ import {
     onSnapshot,
     updateDoc,
     doc,
-    serverTimestamp,
-    getDocs
-} from 'firebase/firestore';
+    serverTimestamp} from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useNotifications } from '../context/notificationContext';
 import { notificationService } from '../services/notificationService';

@@ -77,7 +77,7 @@ router.get('/suggestions', async (req, res) => {
 });
 
 // Health check
-router.get('/health', (req, res) => {
+router.get('/health', (_req, res) => {
   res.json({
     success: true,
     message: 'Assistant service is running',

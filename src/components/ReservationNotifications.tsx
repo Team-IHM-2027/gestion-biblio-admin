@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Bell, CheckCircle, XCircle } from 'lucide-react';
 import { notificationService } from '../services/notificationService';
 
 const ReservationNotifications: React.FC = () => {
