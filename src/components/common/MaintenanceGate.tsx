@@ -6,7 +6,29 @@ import MaintenanceScreen from './MaintenanceScreen';
 
 const MaintenanceGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { config } = useConfig();
-    const [liveMaintenance, setLiveMaintenance] = useState<boolean | null>(null);
+    const [appMaintenance, setAppMaintenance] = useState<boolean | null>(null);
+    const [orgMaintenance, setOrgMaintenance] = useState<boolean | null>(null);
+
+    useEffect(() => {
+        const ref = doc(db, 'Configuration', 'AppSettings');
+        const unsubscribe = onSnapshot(
+            ref,
+            (snapshot) => {
+                if (!snapshot.exists()) {
+                    setAppMaintenance(null);
+                    return;
+                }
+                const data = snapshot.data();
+                setAppMaintenance(Boolean(data?.MaintenanceMode));
+            },
+            (error) => {
+                console.error('Maintenance listener error:', error);
+                setAppMaintenance(null);
+            }
+        );
+
+        return () => unsubscribe();
+    }, []);
 
     useEffect(() => {
         const ref = doc(db, 'Configuration', 'OrgSettings');
@@ -14,22 +36,22 @@ const MaintenanceGate: React.FC<{ children: React.ReactNode }> = ({ children }) 
             ref,
             (snapshot) => {
                 if (!snapshot.exists()) {
-                    setLiveMaintenance(null);
+                    setOrgMaintenance(null);
                     return;
                 }
                 const data = snapshot.data();
-                setLiveMaintenance(Boolean(data?.MaintenanceMode));
+                setOrgMaintenance(Boolean(data?.MaintenanceMode));
             },
             (error) => {
                 console.error('Maintenance listener error:', error);
-                setLiveMaintenance(null);
+                setOrgMaintenance(null);
             }
         );
 
         return () => unsubscribe();
     }, []);
 
-    const maintenanceEnabled = liveMaintenance ?? Boolean(config?.MaintenanceMode);
+    const maintenanceEnabled = Boolean(appMaintenance) || Boolean(orgMaintenance) || Boolean(config?.MaintenanceMode);
 
     if (maintenanceEnabled) {
         return <MaintenanceScreen />;
