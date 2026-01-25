@@ -8,8 +8,6 @@ import Notification from '../components/common/Notification';
 // Profile Components
 import ProfileAvatar from '../components/profile/ProfileAvatar';
 import ProfileForm from '../components/profile/ProfileForm';
-import ProfileStatsComponent from '../components/profile/ProfileStats';
-import SecuritySettings from '../components/profile/SecuritySettings';
 
 // Hooks
 import { useProfile } from '../hooks/useProfile';
@@ -17,7 +15,7 @@ import useI18n from '../hooks/useI18n';
 import { useAuth } from '../context/AuthContext';
 
 // Types
-import type { ProfileFormData, UserProfile, ProfileStats } from '../types/profile';
+import type { ProfileFormData, UserProfile } from '../types/profile';
 
 interface NotificationState {
   visible: boolean;
@@ -27,6 +25,7 @@ interface NotificationState {
 
 const Profile: React.FC = () => {
   const { t } = useI18n();
+  // @ts-ignore
   const navigate = useNavigate();
 
   const { admin, loading: authLoading } = useAuth();
@@ -55,17 +54,9 @@ const Profile: React.FC = () => {
     lastLoginAt: undefined
   };
 
-  const emptyStats: ProfileStats = {
-    totalLogins: 0,
-    lastLoginDays: 0,
-    documentsManaged: 0,
-    accountAge: 0
-  };
-
   const profileHook = useProfile(userId);
 
   const profile = profileHook.profile ?? emptyProfile;
-  const stats = profileHook.stats ?? emptyStats;
 
   const loading = authLoading || (userId ? profileHook.loading : false);
 
@@ -99,12 +90,6 @@ const Profile: React.FC = () => {
       return;
     }
     await profileHook.updateProfile?.(formData, t);
-  };
-
-  const handleChangePassword = () => navigate('/change-password');
-
-  const handleDeleteAccount = () => {
-    showNotification('error', t('danger_section.deletion_warning'));
   };
 
   if (loading) {
@@ -152,73 +137,21 @@ const Profile: React.FC = () => {
               {profile.role === 'admin'
                 ? t('user_status.role_administrator')
                 : profile.role === 'user'
-                ? t('user_status.role_user')
-                : t('profile.status.info_unknown')}
+                  ? t('user_status.role_user')
+                  : t('user_status.role_librarian')} 
             </span>
-          </div>
-        </div>
-
-        {/* STATS */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8 text-center">
-          <div>
-            <div className="text-2xl font-bold">{stats.accountAge}</div>
-            <div className="text-sm opacity-80">{t('statistics.member_days')}</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold">{stats.lastLoginDays}</div>
-            <div className="text-sm opacity-80">{t('statistics.days_since_login')}</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold">{stats.documentsManaged}</div>
-            <div className="text-sm opacity-80">{t('statistics.managed_documents')}</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold">{stats.totalLogins}</div>
-            <div className="text-sm opacity-80">{t('statistics.total_sessions')}</div>
           </div>
         </div>
       </div>
 
       {/* CONTENT */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        <div className="xl:col-span-2 space-y-6">
-          <ProfileForm
-            profile={profile}
-            isEditing={realIsEditing}
-            onToggleEdit={() => realSetIsEditing(!realIsEditing)}
-            onSave={handleProfileSave}
-          />
-          <SecuritySettings
-            onChangePassword={handleChangePassword}
-            onDeleteAccount={handleDeleteAccount}
-          />
-        </div>
-
-        <div className="space-y-6">
-          <ProfileStatsComponent stats={stats} />
-
-          {/* QUICK ACTIONS */}
-          <div className="bg-white rounded-lg border p-6">
-            <h3 className="font-semibold mb-4">
-              {t('profile.quick_actions_section')}
-            </h3>
-
-            <div className="space-y-2">
-              <button onClick={() => navigate('/dashboard/books')} className="action-btn">
-                {t('navigation_actions.browse_books')}
-              </button>
-              <button onClick={() => navigate('/dashboard/loans')} className="action-btn">
-                {t('navigation_actions.check_loans')}
-              </button>
-              <button onClick={() => navigate('/dashboard/reservations')} className="action-btn">
-                {t('navigation_actions.view_reservations')}
-              </button>
-              <button onClick={() => navigate('/dashboard')} className="action-btn">
-                {t('navigation_actions.go_to_dashboard')}
-              </button>
-            </div>
-          </div>
-        </div>
+      <div className="max-w-4xl mx-auto">
+        <ProfileForm
+          profile={profile}
+          isEditing={realIsEditing}
+          onToggleEdit={() => realSetIsEditing(!realIsEditing)}
+          onSave={handleProfileSave}
+        />
       </div>
 
       <Notification

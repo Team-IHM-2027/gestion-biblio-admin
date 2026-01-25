@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Edit, Save, X, User, Mail, Phone, Building, FileText } from 'lucide-react';
 import type { UserProfile, ProfileFormData } from '../../types/profile';
+import useI18n from '../../hooks/useI18n';
 
 interface ProfileFormProps {
   profile: UserProfile;
@@ -17,6 +18,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
   onSave,
   className = ''
 }) => {
+  const { t } = useI18n();
   const [formData, setFormData] = useState<ProfileFormData>({
     name: profile.name ?? '',
     email: profile.email ?? '',
@@ -47,11 +49,11 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
 
   const validateForm = () => {
     const newErrors: Partial<ProfileFormData> = {};
-    if (!formData.name.trim()) newErrors.name = 'Le nom est requis.';
-    if (!formData.email.trim()) newErrors.email = 'L’email est requis.';
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'L’email est invalide.';
-    if (formData.phone && formData.phone.length < 8) newErrors.phone = 'Le numéro est invalide.';
-    if (formData.bio && formData.bio.length > 500) newErrors.bio = 'La biographie ne peut dépasser 500 caractères.';
+    if (!formData.name.trim()) newErrors.name = t('components:form_validation.name_is_required');
+    if (!formData.email.trim()) newErrors.email = t('components:form_validation.email_is_required');
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = t('components:form_validation.email_format_invalid');
+    if (formData.phone && formData.phone.length < 8) newErrors.phone = t('components:form_validation.phone_format_invalid');
+    if (formData.bio && formData.bio.length > 500) newErrors.bio = t('components:form_validation.bio_exceeds_limit');
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -130,7 +132,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
             focus:outline-none focus:ring-2 focus:ring-blue-500
             ${!isEditing ? 'bg-gray-50 text-gray-500 border-gray-200' : 'bg-white border-gray-300'}
             ${error ? 'border-red-500 ring-1 ring-red-500' : ''}`}
-          placeholder={isEditing ? 'Écrivez une courte biographie...' : ''}
+          placeholder={isEditing ? t('components:input_placeholders.enter_bio') : ''}
         />
       ) : (
         <input
@@ -142,7 +144,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
             focus:outline-none focus:ring-2 focus:ring-blue-500
             ${!isEditing ? 'bg-gray-50 text-gray-500 border-gray-200' : 'bg-white border-gray-300'}
             ${error ? 'border-red-500 ring-1 ring-red-500' : ''}`}
-          placeholder={isEditing ? `Entrez ${label.toLowerCase()}` : ''}
+          placeholder={isEditing ? t('components:common.enter_value', { defaultValue: `Entrez ${label.toLowerCase()}` }) : ''}
         />
       )}
 
@@ -154,42 +156,42 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
   );
 
   const genderOptions = [
-    { value: 'Male', label: 'Masculin' },
-    { value: 'Female', label: 'Féminin' }
+    { value: 'Male', label: t('components:gender_options.male_option') },
+    { value: 'Female', label: t('components:gender_options.female_option') }
   ];
 
   return (
     <div className={`bg-white rounded-lg shadow-sm border border-gray-200 ${className}`}>
       <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900">Informations personnelles</h3>
+        <h3 className="text-lg font-semibold text-gray-900">{t('components:profile.personal_info')}</h3>
         {!isEditing ? (
           <button onClick={onToggleEdit} className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-md">
             <Edit className="w-4 h-4" />
-            <span>Modifier</span>
+            <span>{t('components:action_buttons.edit_profile')}</span>
           </button>
         ) : (
           <button type="button" onClick={handleCancel} className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-md">
             <X className="w-4 h-4" />
-            <span>Annuler</span>
+            <span>{t('components:action_buttons.cancel_edit')}</span>
           </button>
         )}
       </div>
 
       <form onSubmit={handleSubmit} className="px-6 py-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField icon={User} label="Nom complet" value={formData.name} onChange={(v) => handleInputChange('name', v)} error={errors.name ?? ''} />
-          <FormField icon={Mail} label="Email" value={formData.email} onChange={(v) => handleInputChange('email', v)} type="email" error={errors.email ?? ''} />
-          <FormField icon={Phone} label="Téléphone" value={formData.phone ?? ''} onChange={(v) => handleInputChange('phone', v)} error={errors.phone ?? ''} />
-          <FormField icon={User} label="Genre" value={formData.gender ?? ''} onChange={(v) => handleInputChange('gender', v)} options={genderOptions} />
-          <FormField icon={Building} label="Département" value={formData.department ?? ''} onChange={(v) => handleInputChange('department', v)} />
-          <FormField icon={FileText} label="Biographie" value={formData.bio ?? ''} onChange={(v) => handleInputChange('bio', v)} type="textarea" error={errors.bio ?? ''} />
+          <FormField icon={User} label={t('components:profile.full_name')} value={formData.name} onChange={(v) => handleInputChange('name', v)} error={errors.name ?? ''} />
+          <FormField icon={Mail} label={t('components:profile.email_address')} value={formData.email} onChange={(v) => handleInputChange('email', v)} type="email" error={errors.email ?? ''} />
+          <FormField icon={Phone} label={t('components:profile.phone_number')} value={formData.phone ?? ''} onChange={(v) => handleInputChange('phone', v)} error={errors.phone ?? ''} />
+          <FormField icon={User} label={t('components:profile.user_gender')} value={formData.gender ?? ''} onChange={(v) => handleInputChange('gender', v)} options={genderOptions} />
+          <FormField icon={Building} label={t('components:profile.user_department')} value={formData.department ?? ''} onChange={(v) => handleInputChange('department', v)} />
+          <FormField icon={FileText} label={t('components:profile.user_bio')} value={formData.bio ?? ''} onChange={(v) => handleInputChange('bio', v)} type="textarea" error={errors.bio ?? ''} />
         </div>
 
         {isEditing && (
           <div className="mt-6 pt-6 border-t border-gray-200 flex justify-end">
             <button type="submit" disabled={isSubmitting} className="flex items-center space-x-2 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
               <Save className="w-4 h-4" />
-              <span>{isSubmitting ? 'Enregistrement...' : 'Enregistrer'}</span>
+              <span>{isSubmitting ? t('components:user_messages.currently_saving') : t('components:action_buttons.save_modifications')}</span>
             </button>
           </div>
         )}

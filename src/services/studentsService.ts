@@ -426,12 +426,16 @@ export class StudentsService {
 
     // Filtrage par niveau
     if (filters.level) {
-      filtered = filtered.filter(student => student.niveau === filters.level);
+      filtered = filtered.filter(student =>
+        student.niveau?.toString().trim().toLowerCase() === filters.level.trim().toLowerCase()
+      );
     }
 
     // Filtrage par département
     if (filters.department) {
-      filtered = filtered.filter(student => student.department === filters.department);
+      filtered = filtered.filter(student =>
+        student.department?.toString().trim().toLowerCase() === filters.department.trim().toLowerCase()
+      );
     }
 
     // Tri

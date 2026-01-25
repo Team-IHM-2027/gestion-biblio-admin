@@ -35,20 +35,39 @@ const Login: React.FC = () => {
 			setError(err.message || 'Une erreur est survenue.');
 		}
 		try {
-	await login(email, password);
-	navigate('/dashboard');
-} catch (error: any) {
-	setError(error.message);
-}
- finally {
+			await login(email, password);
+			navigate('/dashboard');
+		} catch (error: any) {
+			setError(error.message);
+		}
+		finally {
 			setIsLoading(false);
 		}
+	};
+
+	// Added code for logo display
+	const renderLogo = () => {
+		if (!config?.Logo) return null; // wait until config is loaded
+		return (
+			<img
+				src={config.Logo}
+				alt={`${config.Name} Logo`}
+				className="w-10 h-10 object-contain"
+				onError={(e) => {
+					console.error("Failed to load logo:", config.Logo);
+					e.currentTarget.style.display = "none"; // optional fallback
+				}}
+			/>
+		);
 	};
 
 	return (
 		<div className="w-full max-w-md p-8 space-y-6 bg-gray-800 bg-opacity-50 backdrop-blur-md rounded-2xl shadow-2xl animate-fade-in">
 			<div className="text-center animate-slide-up">
-				<h1 className="text-4xl font-bold text-white">{config.Name || 'Biblio Admin'}</h1>
+				<h1 className="text-4xl font-bold text-white flex items-center justify-center gap-3">
+					{renderLogo()}
+					<span>{config.Name || 'Biblio Admin'}</span>
+				</h1>
 				<p className="text-secondary-300 mt-2">Connectez-vous pour accéder au panneau d'administration.</p>
 			</div>
 

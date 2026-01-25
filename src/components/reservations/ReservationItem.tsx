@@ -3,8 +3,8 @@ import { FaBook, FaCalendarAlt, FaCheckCircle, FaClock } from 'react-icons/fa';
 import type { ReservationItemProps } from '../../types';
 import useI18n from '../../hooks/useI18n';
 
-const isFirestoreTimestamp = (data: any): data is { seconds: number, nanoseconds: number } => 
-    typeof data === 'object' && data !== null && 'seconds' in data && 'nanoseconds' in data;
+const isFirestoreTimestamp = (data: any): data is { seconds: number, nanoseconds: number } =>
+  typeof data === 'object' && data !== null && 'seconds' in data && 'nanoseconds' in data;
 
 const ReservationItem: React.FC<ReservationItemProps> = ({
   reservation,
@@ -26,12 +26,12 @@ const ReservationItem: React.FC<ReservationItemProps> = ({
       } else {
         return 'Date invalide';
       }
-      
-      return jsDate.getUTCDate().toString().padStart(2, '0') + '/' + 
-             (jsDate.getUTCMonth() + 1).toString().padStart(2, '0') + '/' + 
-             jsDate.getUTCFullYear() + ' ' + 
-             jsDate.getUTCHours().toString().padStart(2, '0') + ':' + 
-             jsDate.getUTCMinutes().toString().padStart(2, '0');
+
+      return jsDate.getUTCDate().toString().padStart(2, '0') + '/' +
+        (jsDate.getUTCMonth() + 1).toString().padStart(2, '0') + '/' +
+        jsDate.getUTCFullYear() + ' ' +
+        jsDate.getUTCHours().toString().padStart(2, '0') + ':' +
+        jsDate.getUTCMinutes().toString().padStart(2, '0');
     } catch (error) {
       return 'Date invalide';
     }
@@ -39,10 +39,10 @@ const ReservationItem: React.FC<ReservationItemProps> = ({
 
   return (
     <div className="group flex items-center justify-between p-4 mb-3 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-primary-100 transition-all duration-200">
-      
+
       {/* Section Gauche : Image et Infos */}
       <div className="flex items-center space-x-5 flex-1 min-w-0">
-        
+
         {/* Conteneur Image optimisé */}
         <div className="relative flex-shrink-0">
           {reservation.document.imageUrl ? (
@@ -63,7 +63,7 @@ const ReservationItem: React.FC<ReservationItemProps> = ({
           <h4 className="text-lg font-bold text-gray-800 truncate leading-tight mb-1 group-hover:text-primary-600 transition-colors">
             {reservation.document.name || "Sans titre"}
           </h4>
-          
+
           <div className="flex flex-wrap gap-2 items-center">
             {/* Badge Date */}
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
@@ -95,7 +95,7 @@ const ReservationItem: React.FC<ReservationItemProps> = ({
           ) : (
             <>
               <FaCheckCircle size={16} />
-              <span>{t('components:reservations.validate_loan') || "Valider"}</span>
+              <span>{t('components:reservations.confirm_pickup') || t('components:reservations.approve_request')}</span>
             </>
           )}
         </button>

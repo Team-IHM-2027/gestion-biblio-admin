@@ -10,15 +10,15 @@ const Dashboard: React.FC = () => {
 		<div className="min-h-screen bg-gray-50">
 			{/* Sidebar Desktop */}
 			<Sidebar />
-			
+
 			{/* Bottom Navbar Mobile */}
 			<MobileBottomSidebar />
-			
+
 			{/* Main Content Area */}
-			<div className="md:ml-64 mb-16 md:mb-0">
+			<div className="md:ml-64 pb-16 md:pb-0">
 				{/* Top Navbar */}
 				<Navbar />
-				
+
 				{/* Page Content */}
 				<main className="p-4">
 					<Outlet />

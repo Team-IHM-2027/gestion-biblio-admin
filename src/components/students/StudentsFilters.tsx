@@ -1,8 +1,11 @@
 // src/components/students/StudentsFilters.tsx
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaFilter, FaSort } from 'react-icons/fa';
 import type { StudentsFilters } from '../../types/students';
 import useI18n from '../../hooks/useI18n';
+import { fetchDepartments } from '../../services/departementService';
+import type { Department } from '../../types/departement';
+import { ACADEMIC_LEVELS } from '../../types/levels';
 
 interface StudentsFiltersProps {
   filters: StudentsFilters;
@@ -18,6 +21,19 @@ const StudentsFiltersComponent: React.FC<StudentsFiltersProps> = ({
   filteredCount
 }) => {
   const { t } = useI18n();
+  const [departments, setDepartments] = useState<Department[]>([]);
+
+  useEffect(() => {
+    const getDepartments = async () => {
+      try {
+        const data = await fetchDepartments();
+        setDepartments(data);
+      } catch (error) {
+        console.error("Failed to fetch departments", error);
+      }
+    };
+    getDepartments();
+  }, []);
 
   const statusOptions = [
     { value: 'all', label: t('components:students.all_status') },
@@ -67,7 +83,8 @@ const StudentsFiltersComponent: React.FC<StudentsFiltersProps> = ({
           >
             {statusOptions.map(option => (
               <option key={option.value} value={option.value}>
-                {option.label}
+                {/* Ensure statusOptions also uses t() for its labels */}
+                {t(`components:students.statuses.${option.value}`, option.label)}
               </option>
             ))}
           </select>
@@ -78,27 +95,36 @@ const StudentsFiltersComponent: React.FC<StudentsFiltersProps> = ({
           <label className="block text-sm font-medium text-gray-700 mb-1">
             {t('components:students.filter_by_level')}
           </label>
-          <input
-            type="text"
+          <select
             value={filters.level}
             onChange={(e) => onFiltersChange({ level: e.target.value })}
-            placeholder={t('components:students.enter_level')}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          />
+          >
+            <option value="">{t('components:students.all_levels', { defaultValue: 'Tous les niveaux' })}</option>
+            {ACADEMIC_LEVELS.map((level) => (
+              <option key={level.id} value={level.code}>
+                {level.name}
+              </option>
+            ))}
+          </select>
         </div>
-
         {/* Department Filter */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             {t('components:students.filter_by_department')}
           </label>
-          <input
-            type="text"
+          <select
             value={filters.department}
             onChange={(e) => onFiltersChange({ department: e.target.value })}
-            placeholder={t('components:students.enter_department')}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          />
+          >
+            <option value="">{t('components:students.all_departments', { defaultValue: 'Tous les départements' })}</option>
+            {departments.map(dept => (
+              <option key={dept.id} value={dept.nom}>
+                {dept.nom}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Sort Options */}
@@ -111,7 +137,7 @@ const StudentsFiltersComponent: React.FC<StudentsFiltersProps> = ({
             value={filters.sortBy}
             onChange={(e) => onFiltersChange({ sortBy: e.target.value as any })}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            style={{ 
+            style={{
               backgroundColor: "white",
               border: "1px solid chocolate",
               color: "chocolate",
@@ -131,10 +157,10 @@ const StudentsFiltersComponent: React.FC<StudentsFiltersProps> = ({
       {(filters.status !== 'all' || filters.level || filters.department) && (
         <div className="mt-4 flex justify-end">
           <button
-            onClick={() => onFiltersChange({ 
-              status: 'all', 
-              level: '', 
-              department: '' 
+            onClick={() => onFiltersChange({
+              status: 'all',
+              level: '',
+              department: ''
             })}
             className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors duration-200"
           >

@@ -28,16 +28,24 @@ const MobileBottomSidebar: React.FC = () => {
 		{ id: 'books', label: t('components:sidebar.book_management'), icon: 'book-open', route: '/dashboard/books' },
 		{ id: 'users', label: t('components:sidebar.users'), icon: 'users', route: '/dashboard/users' },
 		{ id: 'loans', label: t('components:sidebar.loans'), icon: 'clipboard-list', route: '/dashboard/loans' }
-        
 	];
 
 	// Items secondaires (dans le menu "Plus")
 	const moreItems = [
 		{ id: 'thesis', label: t('components:sidebar.memory_management'), icon: 'academic-cap', route: '/dashboard/thesis' },
-		{ id: 'returns', label: t('components:sidebar.returns'), icon: 'clipboard-check', route: '/dashboard/returns' },
+		{ id: 'reservations', label: t('components:sidebar.reservations'), icon: 'clipboard-check', route: '/dashboard/reservations' },
+		{ id: 'validated-reservations', label: t('components:sidebar.validated_reservations'), icon: 'check-circle', route: '/dashboard/validated-reservations' },
+		{ id: 'archives', label: t('components:sidebar.archives'), icon: 'archive', route: '/dashboard/archives' },
 		{ id: 'settings', label: t('components:sidebar.settings'), icon: 'cog', route: '/dashboard/settings' },
-		
 	];
+
+	const toggleMoreMenu = () => {
+		setShowMoreMenu(!showMoreMenu);
+	};
+
+	const closeMoreMenu = () => {
+		setShowMoreMenu(false);
+	};
 
 	const handleLogout = () => {
 		// Handle logout logic here
@@ -92,25 +100,29 @@ const MobileBottomSidebar: React.FC = () => {
 						<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
 					</svg>
 				);
-			
+			case 'check-circle':
+				return (
+					<svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+					</svg>
+				);
+			case 'archive':
+				return (
+					<svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2v-7M4 7h16M4 7V5a2 2 0 012-2h12a2 2 0 012 2v2" />
+					</svg>
+				);
+
 			default:
 				return null;
 		}
-	};
-
-	const toggleMoreMenu = () => {
-		setShowMoreMenu(!showMoreMenu);
-	};
-
-	const closeMoreMenu = () => {
-		setShowMoreMenu(false);
 	};
 
 	return (
 		<>
 			{/* Overlay pour fermer le menu */}
 			{showMoreMenu && (
-				<div 
+				<div
 					className="fixed inset-0 bg-black bg-opacity-25 z-40"
 					onClick={closeMoreMenu}
 				/>
@@ -125,11 +137,10 @@ const MobileBottomSidebar: React.FC = () => {
 								key={item.id}
 								to={item.route}
 								onClick={closeMoreMenu}
-								className={({ isActive }) => `flex flex-col items-center p-3 rounded-lg transition-colors ${
-									isActive 
-										? 'bg-primary text-white' 
-										: 'hover:bg-gray-100 text-gray-600'
-								}`}
+								className={({ isActive }) => `flex flex-col items-center p-3 rounded-lg transition-colors ${isActive
+									? 'bg-primary text-white'
+									: 'hover:bg-gray-100 text-gray-600'
+									}`}
 							>
 								{renderIcon(item.icon, "w-6 h-6")}
 								<span className="text-xs mt-1 text-center relative">
@@ -140,7 +151,7 @@ const MobileBottomSidebar: React.FC = () => {
 								</span>
 							</NavLink>
 						))}
-						
+
 						{/* Bouton de déconnexion */}
 						<button
 							onClick={handleLogout}
@@ -160,26 +171,24 @@ const MobileBottomSidebar: React.FC = () => {
 						<NavLink
 							key={item.id}
 							to={item.route}
-							className={({ isActive }) => `flex flex-col items-center py-2 px-3 rounded-lg transition-colors ${
-								isActive 
-									? 'text-primary' 
-									: 'text-gray-500 hover:text-gray-700'
-							}`}
+							className={({ isActive }) => `flex flex-col items-center py-2 px-3 rounded-lg transition-colors ${isActive
+								? 'text-primary'
+								: 'text-gray-500 hover:text-gray-700'
+								}`}
 							end={item.id === 'overview'}
 						>
 							{renderIcon(item.icon, "w-5 h-5")}
 							<span className="text-xs mt-1">{item.label}</span>
 						</NavLink>
 					))}
-					
+
 					{/* Bouton "Plus" */}
 					<button
 						onClick={toggleMoreMenu}
-						className={`flex flex-col items-center py-2 px-3 rounded-lg transition-colors ${
-							showMoreMenu 
-								? 'text-primary' 
-								: 'text-gray-500 hover:text-gray-700'
-						}`}
+						className={`flex flex-col items-center py-2 px-3 rounded-lg transition-colors ${showMoreMenu
+							? 'text-primary'
+							: 'text-gray-500 hover:text-gray-700'
+							}`}
 					>
 						<FiMoreHorizontal className="w-5 h-5" />
 						<span className="text-xs mt-1">{t('components:sidebar.more')}</span>

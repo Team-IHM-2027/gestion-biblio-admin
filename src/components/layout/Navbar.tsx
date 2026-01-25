@@ -1,7 +1,7 @@
 // src/components/layout/Navbar.tsx
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { BiSearch, BiUserCircle, BiMessageDetail, BiBell } from 'react-icons/bi';
+import { BiSearch, BiUserCircle, BiMessageDetail, BiBell, BiCheck, BiTrash } from 'react-icons/bi';
 import { IoIosArrowBack } from 'react-icons/io';
 import LanguageSwitcher from '../common/LanguageSwitcher';
 import useI18n from '../../hooks/useI18n';
@@ -9,6 +9,7 @@ import { useSearchContext } from '../../context/SearchContext';
 import { useUnreadCount } from '../../hooks/useUnreadCount';
 import { usePendingReservations } from '../../hooks/usePendingReservations';
 import { loanService } from '../../services/loanService';
+import { notificationService } from '../../services/notificationService';
 import { useEffect } from 'react';
 
 const Navbar: React.FC = () => {
@@ -46,6 +47,24 @@ const Navbar: React.FC = () => {
 
 	const handleNotificationsClick = () => {
 		setIsNotificationsOpen(!isNotificationsOpen);
+	};
+
+	const handleDeleteNotification = async (e: React.MouseEvent, notifId: string) => {
+		e.stopPropagation();
+		try {
+			await notificationService.deleteNotification(notifId, 'LibrarianNotifications');
+		} catch (error) {
+			console.error("Failed to delete notification", error);
+		}
+	};
+
+	const handleMarkAsRead = async (e: React.MouseEvent, notifId: string) => {
+		e.stopPropagation();
+		try {
+			await notificationService.markAsRead(notifId, 'LibrarianNotifications');
+		} catch (error) {
+			console.error("Failed to mark notification as read", error);
+		}
 	};
 
 	/**
@@ -189,8 +208,28 @@ const Navbar: React.FC = () => {
 														</span>
 													</div>
 													<p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">{notif.message}</p>
-													<div className="mt-2 flex items-center text-[10px] text-primary-600 font-bold bg-primary-50 w-fit px-2 py-0.5 rounded">
-														<span className="truncate max-w-[180px]">{notif.data?.bookTitle}</span>
+													<div className="mt-2 flex items-center justify-between">
+														<div className="text-[10px] text-primary-600 font-bold bg-primary-50 w-fit px-2 py-0.5 rounded">
+															<span className="truncate max-w-[120px]">{notif.data?.bookTitle}</span>
+														</div>
+														<div className="flex space-x-2">
+															{!notif.read && (
+																<button
+																	onClick={(e) => handleMarkAsRead(e, notif.id)}
+																	className="p-1 hover:bg-green-100 rounded-full text-green-600 transition-colors"
+																	title={t('common:mark_as_read')}
+																>
+																	<BiCheck size={16} />
+																</button>
+															)}
+															<button
+																onClick={(e) => handleDeleteNotification(e, notif.id)}
+																className="p-1 hover:bg-red-100 rounded-full text-red-600 transition-colors"
+																title={t('common:delete')}
+															>
+																<BiTrash size={16} />
+															</button>
+														</div>
 													</div>
 												</div>
 											))}

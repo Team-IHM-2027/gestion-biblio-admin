@@ -56,9 +56,11 @@ const Reservations: React.FC = () => {
                 {t('components:reservations.title') || 'Demandes de Réservation'}
               </h1>
               <p className="text-sm text-gray-600">
-                {reservations.length} {reservations.length === 1 ? 'utilisateur avec réservations' : 'utilisateurs avec réservations'}
-                • {totalActiveReservations} {totalActiveReservations === 1 ? 'réservation en attente' : 'réservations en attente'}
-                • Max: {maxLoans} par utilisateur
+                {t('components:reservations.subtitle', {
+                  userCount: reservations.length,
+                  resCount: totalActiveReservations,
+                  maxLoans: maxLoans
+                })}
               </p>
             </div>
           </div>
@@ -67,7 +69,7 @@ const Reservations: React.FC = () => {
           <div className="hidden md:flex items-center space-x-6">
             <div className="text-center">
               <div className="text-2xl font-bold text-yellow-600">{totalActiveReservations}</div>
-              <div className="text-xs text-gray-500 uppercase tracking-wide">En attente</div>
+              <div className="text-xs text-gray-500 uppercase tracking-wide">{t('components:reservations.pending')}</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600">{maxLoans}</div>

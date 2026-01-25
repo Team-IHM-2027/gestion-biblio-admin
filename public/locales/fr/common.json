@@ -23,5 +23,23 @@
   "save": "Enregistrer",
   "cancel": "Annuler",
   "loading": "Chargement...",
-  "pending": "en attente"
+  "pending": "en attente",
+  "students": {
+    "filter_by_status": "Filtrer par statut",
+    "filter_by_level": "Filtrer par niveau",
+    "all_levels": "Tous les niveaux",
+    "academic_levels": {
+      "L1": "Licence 1",
+      "L2": "Licence 2",
+      "L3": "Licence 3",
+      "M1": "Master 1",
+      "M2": "Master 2",
+      "DOC": "Doctorat"
+    }
+  },
+  "user_status": {
+    "role_administrator": "Administrateur",
+    "role_user": "Utilisateur",
+    "role_librarian": "Bibliothécaire"
+  }
 }

@@ -147,7 +147,7 @@ const DocumentLoanItem: React.FC<DocumentLoanItemProps> = ({ document, isProcess
           ) : (
             <>
               <FaCheckCircle size={14} />
-              <span>{t('components:loans.validate_return')}</span>
+              <span>{t('components:loans.confirm_return')}</span>
             </>
           )}
         </button>

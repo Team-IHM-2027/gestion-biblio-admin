@@ -105,7 +105,10 @@
     "no_loans_message": "When students borrow documents, they will appear here",
     "no_active_loans": "No borrowed documents",
     "new_loan": "New Loan",
-    "loading": "Loading loans..."
+    "loading": "Loading loans...",
+    "subtitle": "{{userCount}} user(s) with loans • {{loanCount}} document(s) borrowed • Max: {{maxLoans}} per user",
+    "confirm_return": "Confirm Return",
+    "register_loan": "Register Loan"
   },
   "reservations": {
     "title": "Reservations List",
@@ -130,7 +133,11 @@
     "validated_title": "Validated Reservations",
     "no_validated_reservations": "No reservations awaiting pickup",
     "no_validated_message": "Validated reservations will appear here once approved.",
-    "validated_info_banner": "These reservations have been approved. Click 'Validate' to confirm the loan when the student picks up the book."
+    "validated_info_banner": "These reservations have been approved. Click 'Validate' to confirm the loan when the student picks up the book.",
+    "subtitle": "{{userCount}} user(s) with reservations • {{resCount}} pending reservation(s) • Max: {{maxLoans}} per user",
+    "validated_subtitle": "{{userCount}} user(s) • {{resCount}} loan(s) ready for pickup",
+    "confirm_pickup": "Confirm Pickup",
+    "approve_request": "Approve Request"
   },
   "title": "Document Returns",
   "return_date": "Return Date",

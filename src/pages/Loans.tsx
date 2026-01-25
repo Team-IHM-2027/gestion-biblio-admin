@@ -1,6 +1,6 @@
 // pages/Loans.tsx
 import React from 'react';
-import { FaBook, FaPlus } from 'react-icons/fa';
+import { FaBook } from 'react-icons/fa';
 import { useLoans, usePagination } from '../hooks/useLoans';
 import useI18n from '../hooks/useI18n';
 import LoanCard from '../components/loans/LoanCard';
@@ -59,23 +59,25 @@ const Loans: React.FC = () => {
                 {t('components:loans.title')}
               </h1>
               <p className="text-sm text-gray-600">
-                {loans.length} {loans.length === 1 ? 'utilisateur avec emprunts' : 'utilisateurs avec emprunts'} 
-                • {totalActiveLoans} {totalActiveLoans === 1 ? 'document emprunté' : 'documents empruntés'}
-                • Max: {maxLoans} par utilisateur
+                {t('components:loans.subtitle', {
+                  userCount: loans.length,
+                  loanCount: totalActiveLoans,
+                  maxLoans: maxLoans
+                })}
               </p>
             </div>
           </div>
 
           {/* Actions */}
-          <div className="flex items-center space-x-3">
+          {/* <div className="flex items-center space-x-3">
             <button
               onClick={handleNewLoan}
               className="flex items-center space-x-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
             >
               <FaPlus size={14} />
-              <span>{t('components:loans.new_loan')}</span>
+              <span>{t('components:loans.register_loan')}</span>
             </button>
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -84,8 +86,8 @@ const Loans: React.FC = () => {
         {loading ? (
           /* Loading State */
           <div className="flex justify-center items-center py-20">
-            <LoadingSpinner 
-              size="lg" 
+            <LoadingSpinner
+              size="lg"
               text={t('components:loans.loading')}
             />
           </div>

@@ -16,8 +16,9 @@ export const Chat: React.FC = () => {
 
 	return (
 		<> {/* Use Fragment to allow modal to be a sibling */}
-			<div className="flex h-[calc(100vh-120px)] border border-secondary-200 rounded-lg shadow-lg overflow-hidden">
-				<aside className="w-full md:w-1/3 border-r border-secondary-200 flex-col hidden md:flex">
+			<div className="flex h-[calc(100vh-140px)] md:h-[calc(100vh-120px)] border border-secondary-200 rounded-lg shadow-lg overflow-hidden relative">
+				{/* Sidebar: hidden on mobile if a conversation is selected */}
+				<aside className={`w-full md:w-1/3 border-r border-secondary-200 flex-col ${conversationId ? 'hidden md:flex' : 'flex'}`}>
 					<header className="p-4 border-b border-secondary-200 flex justify-between items-center">
 						<h1 className="font-bold text-xl">Messages</h1>
 						<button
@@ -33,7 +34,7 @@ export const Chat: React.FC = () => {
 							<Spinner />
 						) : conversations.length === 0 ? (
 							<div className="text-center text-gray-500 p-4">
-								No conversations yet. <br/>Click the '+' button to start one.
+								No conversations yet. <br />Click the '+' button to start one.
 							</div>
 						) : (
 							<nav>
@@ -49,7 +50,8 @@ export const Chat: React.FC = () => {
 					</div>
 				</aside>
 
-				<main className="w-full md:w-2/3 flex flex-col">
+				{/* Main Content: visible on mobile only if a conversation is selected */}
+				<main className={`w-full md:w-2/3 flex flex-col ${conversationId ? 'flex' : 'hidden md:flex'}`}>
 					{conversationId ? (
 						<ChatWindow />
 					) : (

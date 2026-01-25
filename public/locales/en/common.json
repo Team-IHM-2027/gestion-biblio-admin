@@ -21,7 +21,6 @@
   "delete": "Delete",
   "edit_book": "Edit Book",
   "save": "Save",
-<<<<<<< HEAD
   "cancel": "Cancel",
   "loading": "Loading...",
   "pending": "pending",
@@ -48,8 +47,23 @@
     "last_login": "Dernière connexion",
     "profile_documents": "Documents du profil",
     "page_sessions": "Sessions sur la page"
+  },
+  "students": {
+    "filter_by_status": "Filter by status",
+    "filter_by_level": "Filter by level",
+    "all_levels": "All Levels",
+    "academic_levels": {
+      "L1": "Licence 1",
+      "L2": "Licence 2",
+      "L3": "Licence 3",
+      "M1": "Master 1",
+      "M2": "Master 2",
+      "DOC": "Doctorat"
+    }
+  },
+  "user_status": {
+    "role_administrator": "Administrator",
+    "role_user": "User",
+    "role_librarian": "Librarian"
   }
-=======
-  "cancel": "Cancel"
->>>>>>> f1c26d1 (Tes modifications pour modif3)
 }

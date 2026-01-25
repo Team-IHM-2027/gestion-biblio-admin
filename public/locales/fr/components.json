@@ -108,7 +108,10 @@
     "no_active_loans": "Aucun document emprunté",
     "new_loan": "Nouvel Emprunt",
     "loading": "Chargement des emprunts...",
-    "due_date": "Retour Prévu"
+    "due_date": "Retour Prévu",
+    "subtitle": "{{userCount}} utilisateur(s) avec emprunts • {{loanCount}} document(s) emprunté(s) • Max: {{maxLoans}} par utilisateur",
+    "confirm_return": "Confirmer le Retour",
+    "register_loan": "Enregistrer un Emprunt"
   },
   "reservations": {
     "title": "Liste des Réservations",
@@ -133,7 +136,11 @@
     "validated_title": "Réservations Validées",
     "no_validated_reservations": "Aucune réservation en attente de retrait",
     "no_validated_message": "Les réservations validées apparaîtront ici une fois approuvées.",
-    "validated_info_banner": "Ces réservations ont été approuvées. Cliquez sur 'Valider' pour confirmer le prêt lorsque l'étudiant récupère le livre."
+    "validated_info_banner": "Ces réservations ont été approuvées. Cliquez sur 'Valider' pour confirmer le prêt lorsque l'étudiant récupère le livre.",
+    "subtitle": "{{userCount}} utilisateur(s) avec réservations • {{resCount}} réservation(s) en attente • Max: {{maxLoans}} par utilisateur",
+    "validated_subtitle": "{{userCount}} utilisateur(s) • {{resCount}} prêt(s) à retirer",
+    "confirm_pickup": "Confirmer le Retrait",
+    "approve_request": "Approuver la Demande"
   },
   "title": "Retours de Documents",
   "return_date": "Date de Retour",

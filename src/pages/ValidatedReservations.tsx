@@ -57,8 +57,10 @@ const ValidatedReservations: React.FC = () => {
                                 {t('components:reservations.validated_title')}
                             </h1>
                             <p className="text-sm text-gray-600">
-                                {reservations.length} {reservations.length === 1 ? 'utilisateur' : 'utilisateurs'}
-                                • {totalValidatedReservations} {totalValidatedReservations === 1 ? 'prêt à retirer' : 'prêts à retirer'}
+                                {t('components:reservations.validated_subtitle', {
+                                    userCount: reservations.length,
+                                    resCount: totalValidatedReservations
+                                })}
                             </p>
                         </div>
                     </div>
