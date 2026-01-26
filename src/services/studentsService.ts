@@ -426,29 +426,41 @@ export class StudentsService {
 
     // Filtrage par niveau
     if (filters.level) {
-      filtered = filtered.filter(student =>
-        student.niveau?.toString().trim().toLowerCase() === filters.level.trim().toLowerCase()
-      );
+      const filterLevel = filters.level.trim().toLowerCase();
+      filtered = filtered.filter(student => {
+        const studentLevel = student.niveau?.toString().trim().toLowerCase() || '';
+        // Support matching either the full name or a partial match (for flexible matching)
+        return studentLevel === filterLevel || studentLevel.includes(filterLevel) || filterLevel.includes(studentLevel);
+      });
     }
 
     // Filtrage par département
     if (filters.department) {
-      filtered = filtered.filter(student =>
-        student.department?.toString().trim().toLowerCase() === filters.department.trim().toLowerCase()
-      );
+      const filterDept = filters.department.trim().toLowerCase();
+      filtered = filtered.filter(student => {
+        // Handle both 'department' and 'departement' (French version)
+        const dept = (student.department || (student as any).departement)?.toString().trim().toLowerCase() || '';
+        return dept === filterDept || dept.includes(filterDept) || filterDept.includes(dept);
+      });
     }
 
     // Tri
     filtered.sort((a, b) => {
       switch (filters.sortBy) {
         case 'name':
-          return a.name.localeCompare(b.name);
+          return (a.name || '').localeCompare(b.name || '');
         case 'level':
-          return a.niveau.localeCompare(b.niveau);
-        case 'recent':
-          return new Date(b.heure).getTime() - new Date(a.heure).getTime();
-        case 'old':
-          return new Date(a.heure).getTime() - new Date(b.heure).getTime();
+          return (a.niveau || '').localeCompare(b.niveau || '');
+        case 'recent': {
+          const dateB = b.heure ? new Date(b.heure).getTime() : 0;
+          const dateA = a.heure ? new Date(a.heure).getTime() : 0;
+          return dateB - dateA;
+        }
+        case 'old': {
+          const dateA = a.heure ? new Date(a.heure).getTime() : (Infinity);
+          const dateB = b.heure ? new Date(b.heure).getTime() : (Infinity);
+          return dateA - dateB;
+        }
         default:
           return 0;
       }

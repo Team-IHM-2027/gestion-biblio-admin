@@ -152,22 +152,33 @@ export class LoanService {
       const documentId = documentData[0];
       const collectionName = 'BiblioBooks';
 
-      // Accès direct via ID
-      const docRef = doc(db, collectionName, documentId);
+      // 1. Tenter l'accès direct via ID
+      let docSnap = await getDoc(doc(db, collectionName, documentId));
+      let finalDocId = documentId;
 
-      // Vérifier que le document existe
-      const docSnap = await getDoc(docRef);
-      if (!docSnap.exists()) throw new Error(`Document ${documentId} introuvable dans la collection ${collectionName}`);
+      // 2. Fallback: recherche par nom si l'ID direct échoue (cas fréquent des emprunts mobile)
+      if (!docSnap.exists()) {
+        console.log(`[loanService] Document ID "${documentId}" non trouvé. Tentative de recherche par nom...`);
+        const q = query(collection(db, collectionName), where('name', '==', documentId));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+          docSnap = querySnapshot.docs[0];
+          finalDocId = docSnap.id;
+          console.log(`[loanService] Document trouvé par nom. Nouvel ID: ${finalDocId}`);
+        } else {
+          throw new Error(`Document "${documentId}" introuvable dans la collection ${collectionName}`);
+        }
+      }
 
       // Mettre à jour le nombre d'exemplaires
-      // Note: On récupère la valeur actuelle depuis la base de données pour éviter les problèmes de concurrence et de format
-      const currentBookData = docSnap.data();
+      const currentBookData = docSnap.data() as any;
       const currentExemplaires = Number(currentBookData.exemplaire || 0);
 
-      await updateDoc(docRef, { exemplaire: currentExemplaires + 1 });
+      await updateDoc(doc(db, collectionName, finalDocId), { exemplaire: currentExemplaires + 1 });
 
       // Ajouter à l'archive
-      await this.addToArchive(userName, documentId);
+      await this.addToArchive(userName, finalDocId);
 
       // Mettre à jour l'état de l'utilisateur
       const userRef = doc(this.userCollection, userEmail);
