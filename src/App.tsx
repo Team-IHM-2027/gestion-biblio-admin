@@ -8,6 +8,7 @@ import {AuthProvider} from "./context/AuthContext.tsx";
 import { I18nProvider } from './context/I18nContext.tsx';
 import { NotificationProvider } from './context/notificationContext.tsx';
 import LibrarianAlertListener from './components/LibrarianAlertListener.tsx';
+import MaintenanceGate from './components/common/MaintenanceGate.tsx';
 
 function App() {
   return (
@@ -15,10 +16,12 @@ function App() {
       <AuthProvider>
         <I18nProvider>
           <ConfigProvider orgName={DEFAULT_ORGANIZATION}>
-            <SearchProvider>
-              <LibrarianAlertListener />
-              <RouterProvider router={routes} />
-            </SearchProvider>
+            <MaintenanceGate>
+              <SearchProvider>
+                <LibrarianAlertListener />
+                <RouterProvider router={routes} />
+              </SearchProvider>
+            </MaintenanceGate>
           </ConfigProvider>
         </I18nProvider>
       </AuthProvider>
