@@ -307,7 +307,7 @@ export class LoanService {
       const users = await this.getActiveLoans();
       const now = new Date();
       // const threeDaysInMillis = 3 * 24 * 60 * 60 * 1000;
-      const threeDaysInMillis = 10 * 60 * 1000;
+      const LOAN_DURATION_MS = 5 * 60 * 1000; // 5 minutes (Demo mode)
 
       for (const user of users) {
         for (const slot of user.activeSlots) {
@@ -324,22 +324,38 @@ export class LoanService {
 
           const timeDiff = now.getTime() - loanDate.getTime();
 
-          if (timeDiff > threeDaysInMillis) {
-            const daysOverdue = Math.floor((timeDiff - threeDaysInMillis) / (24 * 60 * 60 * 1000));
-            // Amount = 100 FCFA * daysOverdue (starting at 1 day)
-            const amount = 100 * (Math.max(1, daysOverdue));
+          if (timeDiff > LOAN_DURATION_MS) {
+            const msOverdue = timeDiff - LOAN_DURATION_MS;
+            const minutesOverdue = Math.floor(msOverdue / (60 * 1000));
+
+            let timeOverdueStr;
+            if (minutesOverdue >= 60 * 24) {
+              const days = Math.floor(minutesOverdue / (60 * 24));
+              timeOverdueStr = `${days} jour${days > 1 ? 's' : ''}`;
+            } else if (minutesOverdue >= 60) {
+              const hours = Math.floor(minutesOverdue / 60);
+              const mins = minutesOverdue % 60;
+              timeOverdueStr = `${hours}h ${mins}m`;
+            } else {
+              timeOverdueStr = `${Math.max(1, minutesOverdue)} minute${minutesOverdue > 1 ? 's' : ''}`;
+            }
+
+            // Penalty calculation: 100 FCFA per started 5-minute period overdue
+            const fiveMinPeriods = Math.ceil(msOverdue / (5 * 60 * 1000));
+            const amount = 100 * Math.max(1, fiveMinPeriods);
 
             // TODO: Implement deduplication to prevent spamming (e.g., check last notification date)
-            // For now, we rely on the caller to call this sparingly or on a specific event
+            // For now, we rely on the caller to call this sparingly or on a specific event. 
+            // Since this runs on Navbar mount, be careful. Ideally we should track 'lastNotificationSent'.
 
             await notificationService.sendPenaltyNotification(
               user.email,
               slot.document.id,
               slot.document.name || 'Livre',
-              Math.max(1, daysOverdue),
+              timeOverdueStr,
               amount
             );
-            console.log(`Penalty notification sent to ${user.email} for ${slot.document.name}`);
+            console.log(`Penalty notification sent to ${user.email} for ${slot.document.name}. Overdue: ${timeOverdueStr}`);
           }
         }
       }

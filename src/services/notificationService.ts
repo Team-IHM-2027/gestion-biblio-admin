@@ -108,7 +108,7 @@ export interface PenaltyNotification extends BaseNotification {
     data: {
         bookId: string;
         bookTitle: string;
-        daysOverdue: number;
+        timeOverdue: string;
         amount: number;
     };
 }
@@ -338,7 +338,7 @@ class NotificationService {
         userId: string,
         bookId: string,
         bookTitle: string,
-        daysOverdue: number,
+        timeOverdue: string,
         amount: number
     ): Promise<string> {
         try {
@@ -346,11 +346,11 @@ class NotificationService {
                 userId,
                 type: 'penalty',
                 title: '⚠️ Retard de restitution',
-                message: `Vous avez ${daysOverdue} jours de retard pour "${bookTitle}". Pénalité actuelle : ${amount} FCFA.`,
+                message: `Vous avez ${timeOverdue} de retard pour "${bookTitle}". Pénalité actuelle : ${amount} FCFA.`,
                 data: {
                     bookId,
                     bookTitle,
-                    daysOverdue,
+                    timeOverdue,
                     amount,
                     date: new Date().toISOString()
                 }
