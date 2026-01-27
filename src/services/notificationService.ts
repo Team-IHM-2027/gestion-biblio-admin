@@ -126,8 +126,17 @@ class NotificationService {
     async addUserNotification(data: Omit<BaseNotification, 'id' | 'read' | 'timestamp'>): Promise<string> {
         try {
             const notificationCollection = collection(db, this.collectionName);
+
+            // 🔥 FIX: Filter out undefined values to prevent FirebaseError
+            const cleanData = Object.entries(data).reduce((acc, [key, value]) => {
+                if (value !== undefined) {
+                    acc[key] = value;
+                }
+                return acc;
+            }, {} as any);
+
             const docRef = await addDoc(notificationCollection, {
-                ...data,
+                ...cleanData,
                 read: false,
                 timestamp: Timestamp.now()
             });

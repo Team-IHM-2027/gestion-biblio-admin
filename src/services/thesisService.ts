@@ -29,6 +29,7 @@ const mapDocToThesis = (doc: any): Thesis => {
 		keywords: typeof data.keywords === 'string' ? data.keywords.split(',').map((k: string) => k.trim()) : [],
 		coverImageUrl: data.image || '',
 		pdfUrl: data.pdfUrl || '',
+		type: data.type || 'mémoire',
 		createdAt: data.createdAt || Timestamp.now(),
 		matricule: data.matricule || '',
 		etagere: data.etagere || '',
@@ -90,6 +91,7 @@ export const addThesis = async (thesisData: Omit<Thesis, 'id' | 'createdAt'>): P
 			keywords: thesisData.keywords.join(','), // Convert array back to string
 			image: thesisData.coverImageUrl,
 			pdfUrl: thesisData.pdfUrl,
+			type: thesisData.type,
 			matricule: thesisData.matricule,
 			etagere: thesisData.etagere,
 			commentaire: [], // Initialize with empty comments
@@ -124,6 +126,7 @@ export const updateThesis = async (thesisId: string, data: Partial<Thesis>): Pro
 	if (data.keywords !== undefined) firestoreUpdateData.keywords = data.keywords.join(',');
 	if (data.coverImageUrl !== undefined) firestoreUpdateData.image = data.coverImageUrl;
 	if (data.pdfUrl !== undefined) firestoreUpdateData.pdfUrl = data.pdfUrl;
+	if (data.type !== undefined) firestoreUpdateData.type = data.type;
 	if (data.matricule !== undefined) firestoreUpdateData.matricule = data.matricule;
 	if (data.etagere !== undefined) firestoreUpdateData.etagere = data.etagere;
 

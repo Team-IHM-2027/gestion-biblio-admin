@@ -16,6 +16,7 @@ interface ThesisFormData {
 	keywords: string[];
 	matricule: string;
 	etagere: string;
+	type: 'mémoire' | 'thèse';
 }
 
 const AddThesis: React.FC = () => {
@@ -34,6 +35,7 @@ const AddThesis: React.FC = () => {
 		keywords: [],
 		matricule: '',
 		etagere: '',
+		type: 'mémoire',
 	});
 
 	const [coverFile, setCoverFile] = useState<File | null>(null);
@@ -77,7 +79,7 @@ const AddThesis: React.FC = () => {
 		setShowSuccessMessage(false);
 
 		await handleAddThesis(formData, coverFile, pdfFile);
-		
+
 		console.log('✅ handleAddThesis completed'); // Debug
 		console.log('🎯 Success value:', success); // Debug
 	};
@@ -88,7 +90,7 @@ const AddThesis: React.FC = () => {
 		if (success) {
 			console.log('✅ Success detected! Showing message...'); // Debug
 			setShowSuccessMessage(true);
-			
+
 			// Reset du formulaire
 			setFormData({
 				title: '',
@@ -100,6 +102,7 @@ const AddThesis: React.FC = () => {
 				keywords: [],
 				matricule: '',
 				etagere: '',
+				type: 'mémoire',
 			});
 			setCoverFile(null);
 			setPdfFile(null);
@@ -143,76 +146,93 @@ const AddThesis: React.FC = () => {
 
 			<form onSubmit={handleSubmit} className="space-y-6">
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-					
+
 					{/* INFO SECTION */}
 					<div className="space-y-4 p-4 bg-white rounded-md shadow-sm">
 						<h3 className="font-semibold text-lg border-b pb-2">
 							{t('pages:add_thesis.section_info', { defaultValue: "Thesis Information" })}
-                        </h3>
+						</h3>
 
-						<input 
-							name="title" 
-							value={formData.title} 
-							onChange={handleChange} 
-							placeholder="Thesis Title" 
-							className="form-input" 
-							required 
+						<input
+							name="title"
+							value={formData.title}
+							onChange={handleChange}
+							placeholder="Thesis Title"
+							className="form-input"
+							required
 						/>
-						<input 
-							name="author" 
-							value={formData.author} 
-							onChange={handleChange} 
-							placeholder="Author's Name" 
-							className="form-input" 
-							required 
-						/>
-
-						<input 
-							name="matricule" 
-							value={formData.matricule} 
-							onChange={handleChange} 
-							placeholder="Author's ID / Matricule" 
-							className="form-input" 
-						/>
-						<input 
-							name="etagere" 
-							value={formData.etagere} 
-							onChange={handleChange} 
-							placeholder="Shelf Location (e.g., 1C)" 
-							className="form-input" 
+						<input
+							name="author"
+							value={formData.author}
+							onChange={handleChange}
+							placeholder="Author's Name"
+							className="form-input"
+							required
 						/>
 
-						<input 
-							name="supervisor" 
-							value={formData.supervisor} 
-							onChange={handleChange} 
-							placeholder="Supervisor's Name" 
-							className="form-input" 
-							required 
+						{/* TYPE SELECTION */}
+						<div className="space-y-1">
+							<label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+								Type de document
+							</label>
+							<select
+								name="type"
+								value={formData.type}
+								onChange={(e) => setFormData(p => ({ ...p, type: e.target.value as any }))}
+								className="form-input w-full"
+								required
+							>
+								<option value="mémoire">Mémoire</option>
+								<option value="thèse">Thèse</option>
+							</select>
+						</div>
+
+						<input
+							name="matricule"
+							value={formData.matricule}
+							onChange={handleChange}
+							placeholder="Author's ID / Matricule"
+							className="form-input"
 						/>
-						<input 
-							name="year" 
-							type="number" 
-							value={formData.year} 
-							onChange={handleChange} 
-							placeholder="Year" 
-							className="form-input" 
-							required 
+						<input
+							name="etagere"
+							value={formData.etagere}
+							onChange={handleChange}
+							placeholder="Shelf Location (e.g., 1C)"
+							className="form-input"
 						/>
 
-						<input 
-							name="keywords" 
-							onChange={handleKeywordsChange} 
-							placeholder="Keywords (comma-separated)" 
-							className="form-input" 
+						<input
+							name="supervisor"
+							value={formData.supervisor}
+							onChange={handleChange}
+							placeholder="Supervisor's Name"
+							className="form-input"
+							required
 						/>
-						<textarea 
-							name="abstract" 
-							value={formData.abstract} 
-							onChange={handleChange} 
-							placeholder="Abstract" 
-							className="form-input w-full" 
-							rows={4} 
+						<input
+							name="year"
+							type="number"
+							value={formData.year}
+							onChange={handleChange}
+							placeholder="Year"
+							className="form-input"
+							required
+						/>
+
+						<input
+							name="keywords"
+							onChange={handleKeywordsChange}
+							placeholder="Keywords (comma-separated)"
+							className="form-input"
+						/>
+						<textarea
+							name="abstract"
+							value={formData.abstract}
+							onChange={handleChange}
+							placeholder="Abstract"
+							className="form-input w-full"
+							rows={4}
 							required
 						></textarea>
 					</div>
@@ -231,45 +251,43 @@ const AddThesis: React.FC = () => {
 							)}
 						</div>
 
-						<label 
-							htmlFor="cover-upload" 
+						<label
+							htmlFor="cover-upload"
 							className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-dashed border-gray-400 rounded-md cursor-pointer hover:bg-secondary-100"
 						>
 							<FiUpload /> <span>Upload Cover Image</span>
 						</label>
-						<input 
-							id="cover-upload" 
-							type="file" 
-							onChange={handleCoverChange} 
-							className="hidden" 
-							accept="image/*" 
-							required 
+						<input
+							id="cover-upload"
+							type="file"
+							onChange={handleCoverChange}
+							className="hidden"
+							accept="image/*"
 						/>
 
 						<div className="mt-4">
-							<label 
-								htmlFor="pdf-upload" 
+							<label
+								htmlFor="pdf-upload"
 								className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-dashed border-gray-400 rounded-md cursor-pointer hover:bg-secondary-100"
 							>
 								<FiFileText /> <span>{pdfFile ? pdfFile.name : "Upload PDF Document"}</span>
 							</label>
-							<input 
-								id="pdf-upload" 
-								type="file" 
-								onChange={handlePdfChange} 
-								className="hidden" 
-								accept=".pdf" 
-								required 
+							<input
+								id="pdf-upload"
+								type="file"
+								onChange={handlePdfChange}
+								className="hidden"
+								accept=".pdf"
 							/>
 						</div>
 					</div>
 				</div>
 
 				<div className="flex justify-end gap-4 pt-4 border-t">
-					<Button 
-						variant="outline" 
-						type="button" 
-						onClick={() => navigate(-1)} 
+					<Button
+						variant="outline"
+						type="button"
+						onClick={() => navigate(-1)}
 						disabled={isSubmitting}
 					>
 						<FiXCircle className="mr-2" /> {t('common:cancel')}

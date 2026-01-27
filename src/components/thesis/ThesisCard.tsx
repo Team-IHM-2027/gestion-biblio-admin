@@ -26,6 +26,9 @@ const ThesisCard: React.FC<ThesisCardProps> = ({ thesis }) => {
 					alt={thesis.title}
 					className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
 				/>
+				<div className="absolute top-2 left-2 bg-primary-600/90 text-white px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm">
+					{thesis.type}
+				</div>
 				<div className="absolute top-2 right-2 flex items-center bg-white/80 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-semibold text-primary-700">
 					<FiCalendar className="mr-1" />
 					{thesis.year}

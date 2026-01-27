@@ -24,6 +24,7 @@ export interface Thesis {
 	keywords: string[];
 	coverImageUrl: string;
 	pdfUrl: string;
+	type: 'mémoire' | 'thèse';
 	createdAt: Timestamp;
 
 	// Additional fields from your Firestore structure

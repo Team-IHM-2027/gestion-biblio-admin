@@ -102,7 +102,7 @@ const StudentsFiltersComponent: React.FC<StudentsFiltersProps> = ({
           >
             <option value="">{t('components:students.all_levels', { defaultValue: 'Tous les niveaux' })}</option>
             {ACADEMIC_LEVELS.map((level) => (
-              <option key={level.id} value={level.code}>
+              <option key={level.id} value={level.name}>
                 {level.name}
               </option>
             ))}
