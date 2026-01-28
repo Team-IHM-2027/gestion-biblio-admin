@@ -102,13 +102,14 @@ const DocumentLoanItem: React.FC<DocumentLoanItemProps> = ({ document, isProcess
 
                 if (!borrowDate || isNaN(borrowDate.getTime())) return null;
 
-                const dueDate = new Date(borrowDate.getTime());
-                dueDate.setDate(borrowDate.getDate() + 3); // Ajout de 3 jours (Politique de la bibliothèque)
+                const dueDate = new Date(borrowDate.getTime() + 5 * 60 * 1000); // 5 minutes (Demo mode)
 
-                const formattedDueDate = dueDate.toLocaleDateString('fr-FR', {
+                const formattedDueDate = dueDate.toLocaleString('fr-FR', {
                   year: 'numeric',
                   month: '2-digit',
-                  day: '2-digit'
+                  day: '2-digit',
+                  hour: '2-digit',
+                  minute: '2-digit'
                 });
 
                 return (

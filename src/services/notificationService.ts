@@ -336,14 +336,29 @@ class NotificationService {
      */
     async sendPenaltyNotification(
         userId: string,
+        userName: string,
         bookId: string,
         bookTitle: string,
         timeOverdue: string,
         amount: number
     ): Promise<string> {
         try {
+            // Send email notification
+            const templateParams = {
+                to_name: userName,
+                message: `Vous avez un retard de ${timeOverdue} pour le livre "${bookTitle}". Veuillez le retourner dès que possible. Pénalité actuelle : ${amount} FCFA.`,
+                reason: 'Retard de restitution',
+                type: 'penalty'
+            };
+
+            // Don't await the email so it doesn't block the UI/notification creation if it fails or takes time
+            this.sendEmailNotification(userId, userName, templateParams).catch(err =>
+                console.error("Failed to send penalty email:", err)
+            );
+
             return await this.addUserNotification({
                 userId,
+                userName,
                 type: 'penalty',
                 title: '⚠️ Retard de restitution',
                 message: `Vous avez ${timeOverdue} de retard pour "${bookTitle}". Pénalité actuelle : ${amount} FCFA.`,

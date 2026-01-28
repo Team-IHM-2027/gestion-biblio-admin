@@ -24,8 +24,13 @@ const Navbar: React.FC = () => {
 	const notificationsRef = React.useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
-		// Calculate overdue loans on mount
+		// Calculate overdue loans on mount and every 10 seconds
 		loanService.checkOverdueLoans();
+		const intervalId = setInterval(() => {
+			loanService.checkOverdueLoans();
+		}, 10000); // Check every 10 seconds
+
+		return () => clearInterval(intervalId);
 	}, []);
 
 	// Handle clicks outside to close

@@ -26,11 +26,10 @@ export class LoanService {
       const tabData = userData[tabKey] as any[];
 
       if (status === 'emprunt' && tabData && Array.isArray(tabData) && tabData[0]) {
-        let id, name, category, imageUrl, exemplaires, collection, borrowDate;
+        let id, name, category, imageUrl, exemplaires, collection, borrowDate, penaltySent;
 
         if (typeof tabData[3] === 'number') {
-          // Ancien format: [Name, Category, ImageUrl, Exemplaires, Collection, BorrowDate]
-          // On utilise Name comme ID par défaut
+          // Ancien format: [Name, Category, ImageUrl, Exemplaires, Collection, BorrowDate, PenaltySent?]
           id = tabData[0];
           name = tabData[0];
           category = tabData[1];
@@ -38,8 +37,9 @@ export class LoanService {
           exemplaires = Number(tabData[3]);
           collection = tabData[4];
           borrowDate = tabData[5];
+          penaltySent = tabData[7] === true; // Assuming index 7 for old format too if feasible, or default false
         } else {
-          // Nouveau format (ReservationService): [Id, Name, Category, ImageUrl, Collection, BorrowDate, Exemplaires]
+          // Nouveau format (ReservationService): [Id, Name, Category, ImageUrl, Collection, BorrowDate, Exemplaires, PenaltySent]
           id = tabData[0];
           name = tabData[1];
           category = tabData[2];
@@ -47,11 +47,13 @@ export class LoanService {
           collection = tabData[4];
           borrowDate = tabData[5];
           exemplaires = Number(tabData[6]);
+          penaltySent = tabData[7] === true;
         }
 
         activeSlots.push({
           slotNumber: i,
           status: 'emprunt',
+          penaltySent,
           document: {
             id,
             name,
@@ -325,6 +327,11 @@ export class LoanService {
           const timeDiff = now.getTime() - loanDate.getTime();
 
           if (timeDiff > LOAN_DURATION_MS) {
+            // Check deduplication
+            if (slot.penaltySent) {
+              continue;
+            }
+
             const msOverdue = timeDiff - LOAN_DURATION_MS;
             const minutesOverdue = Math.floor(msOverdue / (60 * 1000));
 
@@ -344,17 +351,36 @@ export class LoanService {
             const fiveMinPeriods = Math.ceil(msOverdue / (5 * 60 * 1000));
             const amount = 100 * Math.max(1, fiveMinPeriods);
 
-            // TODO: Implement deduplication to prevent spamming (e.g., check last notification date)
-            // For now, we rely on the caller to call this sparingly or on a specific event. 
-            // Since this runs on Navbar mount, be careful. Ideally we should track 'lastNotificationSent'.
-
             await notificationService.sendPenaltyNotification(
               user.email,
+              user.name,
               slot.document.id,
               slot.document.name || 'Livre',
               timeOverdueStr,
               amount
             );
+
+            // Mark as sent in Firestore
+            try {
+              const userRef = doc(this.userCollection, user.email);
+              const userSnap = await getDoc(userRef);
+              if (userSnap.exists()) {
+                const userData = userSnap.data();
+                const tabKey = `tabEtat${slot.slotNumber}`;
+                const currentTab = userData[tabKey];
+                if (Array.isArray(currentTab)) {
+                  const newTab = [...currentTab];
+                  newTab[7] = true; // Set penaltySent flag
+
+                  await updateDoc(userRef, {
+                    [tabKey]: newTab
+                  });
+                }
+              }
+            } catch (err) {
+              console.error("Error marking penalty as sent:", err);
+            }
+
             console.log(`Penalty notification sent to ${user.email} for ${slot.document.name}. Overdue: ${timeOverdueStr}`);
           }
         }

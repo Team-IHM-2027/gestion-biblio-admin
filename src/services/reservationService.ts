@@ -190,9 +190,9 @@ export class ReservationService {
             }
 
 
-            // Send notification with 3-day warning
+            // Send notification with 5-minute warning (Demo mode)
             const dueDate = new Date();
-            dueDate.setDate(dueDate.getDate() + 3);
+            dueDate.setTime(dueDate.getTime() + 5 * 60 * 1000); // 5 minutes
 
             await notificationService.sendLoanValidated(
                 userEmail,

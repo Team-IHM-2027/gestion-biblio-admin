@@ -22,6 +22,7 @@ export interface UserLoanSlot {
   slotNumber: number;
   status: 'emprunt' | 'ras';
   document?: DocumentLoan;
+  penaltySent?: boolean;
 }
 
 export interface ProcessedUserLoan {
